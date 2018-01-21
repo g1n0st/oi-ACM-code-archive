@@ -91,7 +91,9 @@ namespace LCT {
 		c[x][1] = c[x][0] = 0;
 	}
 	void work(int x, int y) {
-		rever(x); access(y); splay(y); merge(y, y); pushUp(y);
+		rever(x); access(y); splay(y);
+		merge(y, y);
+		pushUp(y);
 	}
 	void modify(int x, int v) {
 		x = f1.find(x); access(x); splay(x); val[x] += v; pushUp(x);
@@ -118,8 +120,8 @@ int main() {
 			x = f1.find(x); y = f1.find(y);
 			if (x == y) continue;
 			fx = f2.find(x), fy = f2.find(y);
-			if (fx == fy) LCT::work(x, y);
-			else f2.f[fy] = fx; LCT::link(x, y);
+			if (fx ^ fy) f2.f[fy] = fx, LCT::link(x, y);
+			else LCT::work(x, y);
 			break;
 		case 2: LCT::modify(x, y - a[x]); a[x] = y; break;
 		default:
