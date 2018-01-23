@@ -30,7 +30,7 @@ void Solve(int rt, int v) {
 	g[v][0] = f[v][0]; g[v][1] = -1 << 30;
 	for (i = 2; i <= t; i++) {
 		int(&gn)[2] = g[s[i]], (&fn)[2] = f[s[i]], (&pr)[2] = g[s[i - 1]];
-		gn[0] = f[s[i]][0] + max(pr[0], pr[1]); 
+		gn[0] = fn[0] + max(pr[0], pr[1]);
 		gn[1] = fn[1] + pr[0];
 	}
 	p[0] = max(f[rt][0], g[rt][0]);
@@ -38,7 +38,7 @@ void Solve(int rt, int v) {
 	g[v][0] = f[v][0]; g[v][1] = f[v][1];
 	for (i = 2; i <= t; i++) {
 		int(&gn)[2] = g[s[i]], (&fn)[2] = f[s[i]], (&pr)[2] = g[s[i - 1]];
-		gn[0] = f[s[i]][0] + max(pr[0], pr[1]);
+		gn[0] = fn[0] + max(pr[0], pr[1]);
 		gn[1] = fn[1] + pr[0];
 	}
 	p[0] = max(p[0], g[rt][0]);
