@@ -2,7 +2,7 @@
 using namespace std;
 typedef pair<int, int> PI;
 
-const int V = 100010;
+const int V = 500010;
 char get() {
 	static char buf[V], *p1 = buf, *p2 = buf;
 	if (p1 == p2) {
@@ -72,11 +72,11 @@ int cmp(int x, int y) {
 }
 void build(int o, int l, int r) {
 	if (l == r) {
-		val[o] = w[id[l]]; return ;
+		val[o] = id[l]; return ;
 	}
 	int mid = (l + r) >> 1;
 	build(o << 1, l, mid);
-	build(o << 1, mid + 1, r);
+	build(o << 1 | 1, mid + 1, r);
 	val[o] = cmp(val[o << 1], val[o << 1 | 1]);
 }
 int query(int o, int l, int r, int L, int R) {
@@ -124,7 +124,7 @@ int main() {
 	int x, y, z;
 	w[0] = 1 << 30;
 	for (int i = 1; i <= n; i++) Read(w[i]);
-	for (int i = 1; i <= n; i++) {
+	for (int i = 2; i <= n; i++) {
 		Read(x); Add(x, i);
 	}
 	dfs1(1); dfs2(1, 1); build(1, 1, n);
@@ -163,7 +163,9 @@ int main() {
 		}
 		q.push(Abcd(i, i, i, w[i]));
 	}
-	while (--K) {
+	while (K--) {
+		printf("%d\n", q.top().w);
+		
 		Abcd t = q.top(); q.pop();
 
 		if (t.l_t != t.p) {
@@ -183,6 +185,5 @@ int main() {
 			q.push(Abcd(v.first, v.second, pp, t.w + w[pp]));
 		}
 	}
-	printf("%d\n", q.top().w);
 	return 0;
 }
