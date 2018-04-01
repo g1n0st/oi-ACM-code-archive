@@ -115,6 +115,7 @@ priority_queue<Abcd> q;
 
 vector<PI> G[V];
 void join(int x, int l_t, int l_e) {
+	if (dep[l_t] > dep[l_e]) swap(l_t, l_e);
 	G[x].emplace_back(PI(l_t, l_e));
 }
 int main() {
@@ -130,10 +131,29 @@ int main() {
 	dfs1(1); dfs2(1, 1); build(1, 1, n);
 	for (int i = 1; i <= n; i++) {
 		Read(x); Read(y); Read(z);
+		
+		q.push(Abcd(i, i, i, w[i]));
+		
 		if (dep[x] > dep[y]) swap(x, y);
 		if (dep[x] > dep[z]) swap(x, z);
 		if (dep[y] > dep[z]) swap(y, z);
-
+		
+		if (x == y && y == z) {
+			join(i, x, x); continue;
+		}
+		if (x == y || y == z || x == z) {
+			if (x == y) y = z;
+			if (dep[x] > dep[y]) swap(x, y);
+			int l = lca(x, y);
+			if (l == x) {
+				join(i, x, y);
+			}
+			else {
+				join(i, l, x); join(i, lstt(y, l), y);
+			}
+			continue;
+		}
+		
 		int xy = lca(x, y), xz = lca(x, z), yz = lca(y, z);
 
 		if (xy == xz && yz == xz) {
@@ -161,7 +181,6 @@ int main() {
 			join(i, lstt(z, xz), z);
 			if (yz != y) join(i, lstt(y, yz), y);
 		}
-		q.push(Abcd(i, i, i, w[i]));
 	}
 	while (K--) {
 		printf("%d\n", q.top().w);
