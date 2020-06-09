@@ -1,0 +1,403 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{color}
+\usepackage{algorithm}  
+\usepackage{algpseudocode}  
+\usepackage{amsthm,amsmath,amssymb}
+\usepackage{mathrsfs}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\usepackage{tikz}
+\usepackage{verbatim}
+\usetikzlibrary{trees}
+
+\title{有关图神经网络的综合概述性研究}
+\author{余畅 \\ 2019091621002， 信息与软件工程学院}
+\begin{document}
+\maketitle
+
+\section{摘要}
+\textbf{关键词：深度学习，图神经网络，图卷积网络，图注意力网络，图自动编码器，图生成网络，图时空网络} \par
+最近几年，深度学习作为强大的数据分类处理方法，在许多机器学习的任务中都起到了革命性的作用。无论是视频处理，图像处理，语音处理还是自然语言处理，深度学习所处理的数据都是欧式数据。然而在现实生活中，许多实际的应用场景中的数据往往是从非欧式空间生成的，也就是非线性的。因此，常常将 \textbf{数据之间的复杂依赖和相互关系表示为图的结构}。图数据的复杂性给现有的机器学习算法带来了重大挑战，由此出现了许多关于扩展图数据的深度学习方法的研究。本文旨在介绍图神经网络的基本知识，对图神经网络中的各种方法进行分类，讨论不同图神经网络相关的算法，并在文末讨论图神经网络在各个领域的实际应用。
+
+\section{简介}
+
+卷积神经网络（Convolutional Neural Networks, CNN）是一类具有深度结构，包含卷积计算的前馈神经网络，因其具有表征学习能力，能够按其阶层结构对输入信息进行平移不变分类。正是因为其具有此类的性质，所以在面对视频，图像等规则的欧式数据时，能够利用数据的\textbf{平移不变性}、\textbf{局部连结性}和\textbf{组合性}，较为有效的从数据集中提取出整个数据集共享的局部特征。具体来说，在面对一组手写数字的图像数据时，由于这些数字都是在二维空间中的 RGB 的向量表示，在经过矩阵的仿射变换和颜色的二值化后，相同的数字在欧式空间下一般具有相同的特征表达；在手写数字的局部区域，其像素颜色上的表达具有连贯性，而和较远的像素之间的关系则较弱，若像素颜色上的表达差异较大，则可以反向利用局部连结性提取出边缘特征，若是视频数据，其时间维度上的表达一般也是连续的；图像中不同的特征数据之间可以任意组合，任意排布。卷积神经网络出现之后，许多曾经严重依赖人工特征提取数据集的机器学习的任务，例如文本翻译，物体检测，语音识别等，都进入了端到端的学习模式，计算机视觉、自然语言处理等领域也得到了较大的发展。 \par
+
+有了卷积神经网络在处理欧式数据集上的巨大成功，人们继而寻求非欧式数据集上的解决方案，而非欧式数据集上的问题本身就有着强烈的应用需求，例如：研究生物大分子的反应机理，虽然分子的原子数达到百万乃至千万的级别，但是往往只在分子局部的某一个原子团发生特征反应；通过社交网络给用户画像，继而进行相关的商业推送，而每个人的消费行为往往会直接或者间接地收到其所在群体的影响，针对社交网络上的某个子集进行精准的定点推送往往能达到事半功倍的效果。以上的数据类型，无论是分子结构还是用户社交网络，都可以用\textbf{图数据} $G=<V,E>$来表示。相较规则的视频、图片或音频数据流，图数据往往具有不规则的特点，每个图的无序结点集合大小任意可变，且每个结点可以有任意数量不同的邻居结点，因而一些在欧式数据集上的重要操作，例如卷积神经网络中的卷积操作，在图数据集中计算的复杂度就会几何增长。图数据的复杂性给现有的机器学习算法带来了重大挑战，此外，现有的机器学习算法基于\textbf{数据与数据之间是相互独立}的假设，但在图数据中每个结点都有和邻居相关的复杂连接信息，这些连接信息用于捕获数据之间的相互依赖关系，包括：\textbf{引用}，\textbf{关系}，\textbf{交互}。
+
+基于前述提到的知识和思想，并借鉴了已有神经网络中的思路，例如\textbf{CNN}，\textbf{LSTM}和\textbf{深度AE}等，研究人员提出了图神经网络（Graph Neural Networks, GNN）的思想设计了图神经网路的架构，并为了解决图数据的复杂性，对重要算子的泛化和定义也在不断发展。例如图神经网络中重要的\textbf{图卷积算子}，就是受到\textbf{2D-卷积算子}的启发：在2D-卷积算子中，算子将每个像素当成一个节点，由滤波器的尺寸（窗口大小）决定像素的邻居节点，由于图像信息的规则性，节点的邻居在空间中有序且具有固定的大小，之后算子通过卷积计算目标像素节点与其邻居像素节点的加权平均值；图卷积算子则类似，在图数据中，邻居的定义是两个节点直接直接由边相连，为了得到节点的隐式表示，图卷积算子的一个简单方法是取节点及其邻居的特征平均值。 \par
+
+\subsection{图神经网络简史}
+
+图神经网络的表示法最早在由 Gori 等人提出提出，并由 Scarselli 等人进一步阐述。这些最早期的研究和现在的研究方向不同，是通过\textbf{迭代}的方式，利用循环神经结构传播邻居信息，直到达到一个稳定的不动点，来学习目标节点的表示。但是这样的计算方式往往代价巨大。\par
+
+正如前文提到，受到了卷积神经网络在计算机视觉领域巨大成功的启发，许多新提出的方法都致力于重新定义卷积算子。Bruna 首次基于谱图理论提出了一种新的图卷积的变体，并由许多研究在此方向上继续进行改进，但是谱图方法一般同时处理整个图数据，这和图网络中常常存在的局部性相悖，此外，该算法也难以进行并行和缩放，存在着较大的局限性。 \par
+
+近年来新的方向，则是发展基于空间的图卷积，该方法通过聚集节点信息直接在图域进行卷积，并不需要所有节点都参与计算，而是通过抽样策略，在批节点而不是整个图上进行，因而极大地降低了计算量。
+
+除了图卷积网络（GNN）以外，还出现了许多新的图神经网络，包括：\textbf{图注意网络(GAN)}、\textbf{图的自动编码器(GAE)}、\textbf{图的生成网络(GGN)}和\textbf{图时空网络(GSTN)}。
+
+\section{图相关知识}
+
+图 $G=(V,E,A)$，其中 $V$ 为节点集合，$E$ 为边集合，$A$ 为邻接矩阵。$v_i \in V$ 描述了一个点，$e_{ij}=(v_i,v_j) \in E$ 描述两个节点之间的边，$A$ 是一个 $N \times N$ 的矩阵，其中 $A_{ij}$ 不为 $0$ 当且仅当 $e_{ij} \in E$。连接一个节点的边是一个节点的度，定义为 $degree(v_i)=\sum A_i$。图与节点属性 $X$ 相关联， $X \in R^{N \times D}$ 是一个特征矩阵，且 $X_i \in R^D$ 表示节点 $v_i$ 的特征向量。当 $D=1$ 时，$X \in R^N$ 表示图的特征向量。 \par
+有向图中所有边都是从一个节点指向另一个节点。对于有向图，$A_{ij} \ne A_{ji}$。无向图是所有边都无方向的图。对于无向图，$A_{ij} = A_{ji}$ \par
+时空图是一种特征矩阵X随时间变化的图，$G=(V,E,A,X)$，其中 $X \in R^{T \times N \times D}$，其中 $T$ 是时间步长。
+
+\section{图神经网络分类}
+
+在本章节中，本论文将图神经网络划分为五大类别：\textbf{图卷积网络（Graph Convolution Networks，GCN）}、 \textbf{图注意力网络（Graph Attention Networks）}、\textbf{图自编码器（ Graph Autoencoders）}、\textbf{图生成网络（ Graph Generative Networks）} 和 \textbf{图时空网络（Graph Spatial-temporal Networks）}。
+
+\subsection{图卷积网络（Graph Convolution Networks，GCN）}
+
+正如上文所提到的，图卷积网络将卷积运算从传统数据（欧式数据）即图像等推广到了图数据，并泛化了传统数据中的卷积算子。其核心思想即学习一个函数映射关系 $f(.)$，通过该映射， 图中的节点 $v_i$ 可以聚合它自己的特征 $x_i$ 和邻居的特征 $x_j(j \in N(v_i))$，用于生成节点 $v_i$ 的新表示。图卷积网络本身也是许多复杂图神经网络的基础，可以推广为后续的自动编码器模型、生成模型、时空网络模型等。
+
+GCN方法又可以分为两个大类：\textbf{基于谱（spectral-based）}和\textbf{基于空间（spatial-based）}。
+
+\begin{itemize}
+\item [1)] 
+基于谱（spectral-based）的方法从图信号处理的角度引入了滤波器来定义图卷积，该图卷积操作解释为从图信号中去除噪声。
+\item [2)]
+基于空间（spatial-based）的方法将图卷积表示为从邻域聚合特征信息，当图卷积网络的算法在节点层次运行时，图池化模块可以与图卷积层交错，将图粗化为高级子结构。这种架构设计可用于提取图的各级表示和执行图分类任务。
+\end{itemize}
+
+\subsubsection{基于谱的图卷积神经网络}
+
+在数字信号处理中，通过引入傅里叶变换将时域信号转化为频域信号，可以在频域上做到时域无法做到的事情，而这正是基于谱的图卷积网络的核心思想。
+
+在基于谱的图神经网络中，图被假定为无向图，无向图的一种鲁棒数学表示是正则化图拉普拉斯矩阵，即：
+
+\begin{equation} 
+L=I_n-D^{-\frac{1}{2}} \Lambda D^{-\frac{1}{2}}
+\end{equation}
+
+其中 $A$ 为图的邻接矩阵，$D$ 为对角矩阵且
+
+\begin{equation} 
+D_{ii}=\sum_j(A_{i,j})
+\end{equation}
+
+由于正则化图拉普拉斯矩阵是实对称半正定矩阵，所以可以将正则化拉普拉斯矩阵分解为
+
+\begin{equation} 
+\widehat{L}=UAU^T
+\end{equation}
+
+其中
+
+\begin{equation} 
+U=[u0,u1,...,u_{n-1}] \in \mathbf{R}^{N \times N}
+\end{equation}
+
+$U$ 是由 $L$ 的特征向量构成的矩阵， $\Lambda$ 是对角矩阵，对角线上的值为 $L$ 的特征值。正则化拉普拉斯矩阵的特征向量构成了一组正交基。 \par
+
+在图信号处理过程中，一个图的信号
+
+\begin{equation} 
+x \in \mathbf{R}^{N}
+\end{equation}
+
+是一个由图的各个节点组成的特征向量，其中 $x_i$ 代表第 $i$ 个节点。对图 $X$ 的傅里叶变换可以由此被定义为
+
+\begin{equation} 
+\mathscr{F}(x)=\mathbf{U}^{T^{\smile}}x
+\end{equation}
+
+傅里叶反变换则定义为
+
+\begin{equation} 
+\mathscr{F}^{-1}(\widehat{x})=\mathbf{U}\widehat{x}
+\end{equation}
+
+其中 $\widehat{x}$ 为傅里叶变换后的结果。傅里叶变换这个过程则可以理解为将输入的图信号投影到了以正则化图拉普拉斯的特征向量为正交基构成的正交空间里，而这转换后的信号 $\widehat{x}$ 的元素是该正交空间中图信号的坐标。原来的输入信号可以表示为
+
+\begin{equation} 
+x=\sum_{i}\widehat{x_i}u_i
+\end{equation}
+
+而这正是对坐标做傅里叶反变换后所得到的结果。\par
+
+现在可以定义对输入信号 $X$ 的图卷积操作：
+
+\begin{equation} 
+x * \mathtt{G} g = \mathscr{F}^{-1}(\mathscr{F}(x) \odot \mathscr{F}(g)) \\
+= U(U^{T} x \odot U^{T} g)
+\end{equation}
+
+其中，$g \in R^N$ 是定义的滤波器，$\odot$ 则表示哈达玛积（Hadamard product）。\par
+
+基于谱的图卷积网络都遵循这样的模式，它们之间关键的不同点在于\textbf{选择的滤波器不同}。现有的基于谱的图卷积网络模型有：\textbf{Spectral CNN}、\textbf{Chebyshev Spectral CNN (ChebNet)}、\textbf{Adaptive Graph Convolution Network (AGCN)}等。而正如前文在简介中提到的缺点，基于谱的图卷积网络需要同时处理整个图的数据，在处理大型图数据时计算量显著过大。
+
+\subsubsection{基于空间的图卷积神经网络}
+
+从空间这一概念可知，基于空间的图卷积神经网络的主要思想正是引自传统的卷积神经网络中对图像的卷积运算，不同之处在于基于空间的图卷积神经网络是\textbf{基于节点的空间关系来定义图卷积}。正如前文所提到，图卷积算子，就是受到2D-卷积算子的启发：在2D-卷积算子中，算子将每个像素当成一个节点，由滤波器的尺寸（窗口大小）决定像素的邻居节点，由于图像信息的规则性，节点的邻居在空间中有序且具有固定的大小，之后算子通过卷积计算目标像素节点与其邻居像素节点的加权平均值；图卷积算子则类似，在图数据中，邻居的定义是两个节点直接直接由边相连，为了得到节点的隐式表示，图卷积算子的一个简单方法是取节点及其邻居的特征平均值。 反过来验证，图像也可以看成是特殊化的图数据，将每个像素视为节点，则其和其所在的3x3网格周围的像素节点直接相连，8个像素的相对位置构成该节点邻居的顺序。按照图卷积算子的表示，通过对每个通道上的中心节点及其相邻节点的像素值进行加权平均，对该3x3窗口应用一个滤波器。由于邻居的表示基于特定的顺序，则可以在不同的位置共享可训练权重。那么一般化来看，对于一般的图，基于空间的图卷积就将中心节点表示和相邻节点的表示进行聚合，最终得到该节点的新的表示。 \par
+
+\subsubsection{算法比较}
+
+作为最早的图卷积网络，基于谱的网络在许多与图相关的分析任务中取得了令人印象深刻的结果。这些模型在图信号处理方面有一定的理论基础。通过设计新的图信号滤波器，我们可以从理论上设计新的图卷积网络。然而，基于谱的模型有着一些难以克服的缺点，包括内存占用大，难以并行性，算法复杂度大等等。为了更好的研究两种算法，下面是从三个方面对两种算法进行的比较。
+
+\begin{itemize}
+\item [1)] 
+效率上： \\ 基于谱的模型的计算成本随着图的大小而急剧增加，因为它总是需要执行特征向量计算或者同时处理整个图，使得难以适用于大型图。 \\ 基于空间的模型有潜力处理大型图，因为它们通过聚集相邻节点直接在图域中执行卷积。计算可以在一批节点中执行，而不是在整个图中执行。当相邻节点数量增加时，可以引入采样技术来提高效率。 \par
+\item [2)] 
+一般性上： \\ 基于谱的模型假定一个固定的图，使得它们很难在图中添加新的节点。\\ 基于空间的模型在每个节点本地执行图卷积，可以轻松地在不同的位置和结构之间共享权重。 \par
+\item [3)] 
+灵活性上： \\ 基于谱的模型仅限于在无向图上工作，有向图上的拉普拉斯矩阵没有明确的定义，因此将基于谱的模型应用于有向图的唯一方法是将有向图转换为无向图。 \\ 基于空间的模型更灵活地处理多源输入，这些输入可以合并到聚合函数中。
+\end{itemize}
+
+综上所示，相较于基于谱的模型，基于空间的模型无论是在效率、一般性还是灵活性上，都有着更大的潜力，因此也往往是近些年来的关注对象和研究方向。
+
+\subsection{图注意力网络（Graph Attention Networks）}
+
+视觉注意力机制是人类的视觉系统所特有的信号处理机制。通过快速对全局图像的扫描，视觉系统获得需要重点关注的目标区域，也就是一般所说的注意力焦点，而后对这一区域投入更多注意力资源，以获取更多所需要关注目标的细节信息，而抑制其他无用信息。通俗举例来讲，人类在通过视觉系统阅读譬如报纸时，注意力往往先放在其中的大标题和副标题上，其次往往是报纸上的配图，而在关注配图时，人类会优先注意到和文章内容相关联的信息。也就是说，虽然人的视觉系统同时看到了报纸的全部，但是注意力却只投入在其中几个焦点部位，忽略或暂时忽略其它不重要的信息。 神经网络的注意力机制（Attention Mechanism）也借鉴于此，由于计算力有限，在训练神经网络时，神经注意力机制使得神经网络具备专注于输入子集的能力。例如训练识别鸟类的品种问题，对于精细的鸟类品种分类，对最终输出影响最大的可能是鸟类的头部区域，通过注意力机制将头部的特征强化，而忽略其他部分，可以更好的实现区分鸟类的具体品种。
+
+图注意力网络和图卷积网络类似，目标也在于寻找一个合适的聚合函数用以融合图中相邻节点的表示以得到新的表示。其特征在于，在这个聚合的过程中，其使用了注意力机制。 \par
+
+图注意力网络模型通过堆叠图注意力层（Graph Attention layer）实现。其中图注意力层（Graph Attention layer）的输入是节点特征集合
+
+\begin{equation} 
+ \mathbf{h} = \{ \overrightarrow{h_1}, \overrightarrow{h_2}, ..., \overrightarrow{h_N} \}, \overrightarrow{h_i} \in \mathbb{R}^F
+\end{equation}
+
+
+输出是一个新的节点特征集合
+
+\begin{equation} 
+\mathbf{h}' = \{ \overrightarrow{h_1}', \overrightarrow{h_2}', ..., \overrightarrow{h_N}' \}, \overrightarrow{h_i}' \in \mathbb{R}^{F'}
+\end{equation}
+
+
+为了计算每个邻居节点的权重，通过一个 $F \times F'$ 的共享权重矩阵 $\mathbf{W}$ 应用于每个节点，然后即可计算出 \textbf{attention} 系数 
+
+\begin{equation} 
+e_{ij}=a(\mathbf{W}\overrightarrow{h_i},\mathbf{W}\overrightarrow{h_j})
+\end{equation}
+
+该系数可表示节点 $\mathbf{j}$ 相对于节点 $\mathbf{i}$ 的重要性。论文只计算节点 $\mathbf{i}$ 的邻居节点，这个称作masked attention。接着就是归一化的权重系数 
+
+\begin{equation} 
+a_{ij}=\mathbf{softmax}_j(e_{ij})=\frac{\mathbf{exp}(e_{i,j})}{\sum_{k \in \mathcal{N}_i}\mathbf{exp}(e_{i,k})}
+\end{equation}
+
+进一步细化公式如下， $\mathbf{a}$ 向量为 $F' \times F'$，使用\textbf{LeakyReLU}($\alpha = 0.2$)：
+
+\begin{equation} 
+a_{ij}=\frac{\mathbf{exp}(\mathbf{LeakyReLU(\overrightarrow{\mathbf{a}}^T[\mathbf{W}\overrightarrow{h_i} \parallel \mathbf{W}\overrightarrow{h_j}])})}{\sum_{k \in \mathcal{N}_i} \mathbf{exp}(\mathbf{LeakyReLU(\overrightarrow{\mathbf{a}}^T[\mathbf{W}\overrightarrow{h_i} \parallel \mathbf{W}\overrightarrow{h_k}])})}
+\end{equation}
+
+这样即可得到节点 $\textbf{i}$ 的表示
+
+\begin{equation} 
+\overrightarrow{h_i}' = \sigma (\sum_{j \in \mathcal{N}_i} a_{ij} \mathbf{W}\overrightarrow{h_j})
+\end{equation}
+
+为了使self-attention能稳定地表示节点 $\mathbf{i}$ ，这里还使用了multi-head attention机制，进一步调整公式为
+
+\begin{equation} 
+\overrightarrow{h_i}' = \parallel_{k=1}^{K} \sigma (\sum_{j \in \mathcal{N}_i} a_{ij}^{k} \mathbf{W}^{k} \overrightarrow{h_j})
+\end{equation}
+
+如果使用上式multi-head attention层直接作为输出层明显不合适，所以也可以使用$K$ 个head的均值，如下式
+
+\begin{equation} 
+\overrightarrow{h_i}' = \sigma (\frac{1}{K} \sum_{k=1}^{K} \sum_{j \in \mathcal{N}_i} a_{ij}^{k} \mathbf{W}^{k} \overrightarrow{h_j})
+\end{equation}
+
+\subsubsection{门控注意力网络（Gated Attention Network , GAAN)}
+
+门控注意力网络（GAAN）还采用了多头注意力(multi-head attention)机制来更新节点的隐藏状态。然而，GAAN并没有给每个head部分配相等的权重，而是引入了一种自注意机制(self-attention)，该机制为每个head计算不同的权重。更新规则定义为
+
+\begin{equation} 
+\mathbf{h_i}^t = \phi_{0}(\mathbf{x_i} \oplus \parallel_{k=1}^{K} g_{i}^{k} \sum_{j \in \mathcal{N}_i} a_k(\mathbf{h_i}^{t-1},\mathbf{h_j}^{t-1}) \phi_{v}(\mathbf{h_j}^{t-1}))
+\end{equation}
+
+其中 $\phi_{0}(.)$ 和 $\phi_{v}(.)$ 是反馈神经网络，而 $g_{i}^{k}$ 是第 $k$ 个注意力head的注意力权重。
+
+\subsubsection{图形注意力模型（ Graph Attention Model, GAM)}
+
+图形注意力模型（GAM）提供了一个循环神经网络模型用以解决图形分类问题，通过自适应地访问一个重要节点的序列来处理图的信息。GAM模型被定义为
+
+\begin{equation}
+\mathbf{h_t}=\mathbf{f}_h(\mathbf{f}_s(r_{t-1},v_{t-1},g;\theta_s),\mathbf{h_{t-1}};\theta_h)
+\end{equation}
+
+其中 $\mathbf{f}_h(.)$ 是一个LSTM网络，$\mathbf{f}_s(.)$ 是一个step network，它会优先访问当前节点 $v_{t-1}$ 优先级高的邻居并将它们的信息聚合。
+
+\subsubsection{算法比较}
+
+GAT算法的优势在于：
+
+\begin{itemize}
+\item [1)] 
+算法复杂度低：GAT运算得到 $F'$ 个特征需要的算法复杂度为 $\mathcal{O}(\vert V \vert FF'+\vert E \vert F')$，并且引入 $K$ 之后，对于每个head的运算都独立并且可以并行。
+\item [2)] 
+鲁棒性：与GCN的不同在于，GAT针对不同的相邻节点的重要性进行预测，模型具有更好的性能并且对于扰动更加鲁棒。
+\item [3)] 
+灵活性：引入注意力机制之后，节点的计算只与相邻节点有关，即共享边的节点有关，无需得到整张graph的信息。
+\end{itemize}
+
+\subsection{图自动编码器（Graph Autoencoders，GAE）}
+
+图自动编码器是一种无监督学习框架，是一类图嵌入方法，其目的是利用神经网络结构将图的顶点表示为低维向量。通过编码器学习一种低维点向量，然后通过解码器重构图数据。典型的解决方案是利用多层感知机作为编码器来获取节点嵌入，其中解码器重建节点的邻域统计信息，如 positive pointwise mutual information （PPMI）或一阶和二阶近似值。最近，研究人员已经探索了将GCN作为编码器的用途，将GCN与GAN结合起来，或将LSTM与GAN结合起来设计图自动编码器。
+
+目前基于GCN的自编码器的方法主要有：\par Graph Autoencoder (GAE)和Adversarially Regularized Graph Autoencoder (ARGA)，此外的其它变体还有： \par
+
+Network Representations with Adversarially Regularized Autoencoders (NetRA) \par
+
+Deep Neural Networks for Graph Representations (DNGR) \par
+
+Structural Deep Network Embedding (SDNE) \par
+
+Deep Recursive Network Embedding (DRNE) \par
+
+DNGR和SDNE学习仅给出拓扑结构的节点嵌入，而GAE、ARGA、NetRA、DRNE用于学习当拓扑信息和节点内容特征都存在时的节点嵌入（Embedding）。在邻接矩阵 $A$ 的稀疏性较大时，图自动编码器的性能会受到挑战，因为解码器的正条目数远远小于负条目数。为了解决这个问题，DNGR将矩阵重构为一个更密集的矩阵，即PPMI矩阵，而SDNE对邻接矩阵的零项进行惩罚，GAE对邻接矩阵中的项进行重加权，NetRA将图线性化为序列。
+
+\subsection{图生成网络（Graph Generative Networks，GGN）}
+
+图生成网络的目标是在给定一组已观察的图的情况下生成新的图。图生成网络的许多方法都是特定于领域的。例如在分子图的生成中，一些工作模拟了称为SMILES的分子图的字符串表示。在自然语言处理中，生成语义图或知识图通常以给定的句子为条件。最近，人们提出了几种通用的方法。一些工作将生成过程作为节点和边的交替形成因素，而另一些则采用生成对抗训练。这类方法要么使用GCN作为构建基块，要么使用不同的架构。
+
+\subsubsection{Molecular Generative Adversarial Networks (MolGAN)}
+
+MolGAN将relational GCN、改进的GAN和强化学习（RL）目标集成在一起，以生成具有所需属性的图。GAN由一个生成器和一个鉴别器组成，它们相互竞争以提高生成器的真实性。在MolGAN中，生成器试图提出一个伪图及其特征矩阵，而鉴别器的目标是区分伪样本和经验数据。此外，还引入了一个与鉴别器并行的奖励网络，以鼓励生成的图根据外部评价器具有某些属性。
+
+\subsubsection{Deep Generative Models of Graphs (DGMG)}
+
+DGMG利用基于空间的图卷积网络来获得现有图的隐藏表示。生成节点和边的决策过程是以整个图的表示为基础的。简而言之，DGMG递归地在一个图中产生一个节点，直到达到某个停止条件。在添加新节点后的每一步，DGMG都会反复决定是否向添加的节点添加边，直到决策的判定结果变为假。如果决策为真，则评估将新添加节点连接到所有现有节点的概率分布，并从概率分布中抽取一个节点。将新节点及其边添加到现有图形后，DGMG将更新图的表示。
+
+\subsubsection{GraphRNN}
+GraphRNN通过两个层次的循环神经网络的深度图生成模型。图层次的RNN每次向节点序列添加一个新节点，而边层次RNN生成一个二进制序列，指示新添加的节点与序列中以前生成的节点之间的连接。为了将一个图线性化为一系列节点来训练图层次的RNN，GraphRNN采用了广度优先搜索（BFS）策略。为了建立训练边层次的RNN的二元序列模型，GraphRNN假定序列服从多元伯努利分布或条件伯努利分布。
+
+\subsubsection{NetGAN}
+NetGAN将LSTM与Wasserstein-GAN结合在一起，使用基于随机行走的方法生成图形。GAN框架由两个模块组成，一个生成器和一个鉴别器。生成器尽最大努力在LSTM网络中生成合理的随机行走序列，而鉴别器则试图区分伪造的随机行走序列和真实的随机行走序列。训练完成后，对一组随机行走中节点的共现矩阵进行正则化，我们可以得到一个新的图。
+
+\subsection{图时空网络（Graph Spatial-Temporal Networks，GSTN）}
+
+图时空网络同时捕捉时空图的时空相关性。时空图具有全局图结构，每个节点的输入随时间变化。例如，在交通网络中，每个传感器作为一个节点连续记录某条道路的交通速度，其中交通网络的边由传感器对之间的距离决定。图形时空网络的目标可以是预测未来的节点值或标签，或者预测时空图标签。最近的研究仅仅探讨了GCNs的使用，GCNs与RNN或CNN的结合，以及根据图结构定制的循环体系结构。 \par
+目前图时空网络的模型主要有：Diffusion Convolutional Recurrent Neural Network (DCRNN)，CNN-GCN，Spatial Temporal GCN (ST-GCN），Structural-RNN
+
+\section{应用}
+
+图神经网络已经在许多问题领域中得到了探索，包括有监督的、半监督的、无监督的和强化的学习环境。 \par
+
+模拟物理真实的世界是理解人类智能最基本的方面之一。通过将对象表示为节点，将关系表示为边，我们可以以简单有效的方式对对象、关系和物理进行基于GNN的推理。GNN实现的Interaction Networks模型可用来对各种物理系统进行预测和推断，该模型以对象和关系作为输入，说明它们相互作用的原因，并应用效果和物理动力学来预测新的状态。它们分别对关系中心模型和对象中心模型进行建模，使得跨不同系统进行概括变得更加容易。 \par
+
+在化学中，研究人员应用图神经网络研究分子的图结构。在分子图中，原子为图中的节点，化学键为图中的边。节点分类、图形分类和图形生成是分子图的三个主要任务，GNN构建的推理模型可以用来学习分子指纹、预测分子性质、推断蛋白质结构、合成化合物等。 \par
+
+交通拥堵已成为现代城市的一个热点社会问题。准确预测交通网络中的交通速度、交通量或道路密度，在路线规划和流量控制中至关重要。有学者采用基于图的时空神经网络方法来解决这些问题。他们模型的输入是一个时空图。在这个时空图中，节点由放置在道路上的传感器表示，边由阈值以上成对节点的距离表示，每个节点都包含一个时间序列作为特征。目标是预测一条道路在时间间隔内的平均速度。另一个应用是出租车需求预测，这有助于智能交通系统有效利用资源，节约能源。 \par
+
+除了上述提到的一些结构性和非结构性场景之外，还有大量广泛的其他应用场景，比如机器翻译，提取文本中实体之间的语义关系，文本分类，图像语义分割等等，图神经网络也在其中发挥了重要作用。
+
+\section{总结}
+
+近年来，图神经网络已经成为图域机器学习的有力工具。这一进步归功于表达能力、模型灵活性和训练算法的进步。在本文中，基于已有的神经网络相关知识，简单介绍了图神经网络相关的概念，总结了目前图神经网络不同的分类，包括图卷积网络，图注意网络，图自动编码器，图生成网络和图时空网络，其中每种分类下介绍了其算法思想和变种。最后介绍了图神经网络有关的不同方向的应用。
+
+\section{参考文献}
+\begin{itemize}
+\item [[1]] 
+J. Redmon, S. Divvala, R. Girshick, and A. Farhadi, “You only
+look once: Unified, real-time object detection,” in Proceedings of
+the IEEE conference on computer vision and pattern recognition, 2016,
+pp. 779–788.
+\item [[2]] 
+S. Ren, K. He, R. Girshick, and J. Sun, “Faster r-cnn: Towards
+real-time object detection with region proposal networks,” in
+Advances in neural information processing systems, 2015, pp. 91–99.
+M.-T. Luong, H. Pham, and C. D. Manning, “Effective approaches
+to attention-based neural machine translation,” in Proceedings of
+the Conference on Empirical Methods in Natural Language Processing,
+2015, pp. 1412–1421.
+\item [[3]] 
+M.-T. Luong, H. Pham, and C. D. Manning, “Effective approaches
+to attention-based neural machine translation,” in Proceedings of
+the Conference on Empirical Methods in Natural Language Processing,
+2015, pp. 1412–1421.
+\item [[4]]
+Y. Wu, M. Schuster, Z. Chen, Q. V. Le, M. Norouzi, W. Macherey,
+M. Krikun, Y. Cao, Q. Gao, K. Macherey et al., “Google’s neural
+machine translation system: Bridging the gap between human
+and machine translation,” arXiv preprint arXiv:1609.08144, 2016.
+\item [[5]]
+G. Hinton, L. Deng, D. Yu, G. E. Dahl, A.-r. Mohamed, N. Jaitly,
+A. Senior, V. Vanhoucke, P. Nguyen, T. N. Sainath et al., “Deep
+neural networks for acoustic modeling in speech recognition:
+The shared views of four research groups,” IEEE Signal processing
+magazine, vol. 29, no. 6, pp. 82–97, 2012.
+\item [[6]]
+Y. LeCun, Y. Bengio et al., “Convolutional networks for images,
+speech, and time series,” The handbook of brain theory and neural
+networks, vol. 3361, no. 10, p. 1995, 1995.
+\item [[7]]
+S. Hochreiter and J. Schmidhuber, “Long short-term memory,”
+Neural computation, vol. 9, no. 8, pp. 1735–1780, 1997.
+\item [[8]]
+M. M. Bronstein, J. Bruna, Y. LeCun, A. Szlam, and P. Vandergheynst, “Geometric deep learning: going beyond euclidean
+data,” IEEE Signal Processing Magazine, vol. 34, no. 4, pp. 18–42,
+2017.
+\item [[9]]
+R. van den Berg, T. N. Kipf, and M. Welling, “Graph convolutional matrix completion,” stat, vol. 1050, p. 7, 2017.
+\item [[10]]
+F. Monti, M. Bronstein, and X. Bresson, “Geometric matrix completion with recurrent multi-graph neural networks,” in Advances
+in Neural Information Processing Systems, 2017, pp. 3697–3707.
+\item [[11]]
+R. Ying, R. He, K. Chen, P. Eksombatchai, W. L. Hamilton, and
+J. Leskovec, “Graph convolutional neural networks for webscale recommender systems,” in Proceedings of the ACM SIGKDD
+International Conference on Knowledge Discovery and Data Mining.
+ACM, 2018, pp. 974–983
+\item [[12]]
+] M. Defferrard, X. Bresson, and P. Vandergheynst, “Convolutional
+neural networks on graphs with fast localized spectral filtering,”
+in Advances in Neural Information Processing Systems, 2016, pp.
+3844–3852.
+\item [[13]]
+J. Gilmer, S. S. Schoenholz, P. F. Riley, O. Vinyals, and G. E. Dahl,
+“Neural message passing for quantum chemistry,” in Proceedings
+of the International Conference on Machine Learning, 2017, pp. 1263–
+1272.
+\item [[14]]
+T. N. Kipf and M. Welling, “Semi-supervised classification with
+graph convolutional networks,” in Proceedings of the International
+Conference on Learning Representations, 2017.
+\item [[15]]
+ P. Velickovic, G. Cucurull, A. Casanova, A. Romero, P. Lio,
+and Y. Bengio, “Graph attention networks,” in Proceedings of the
+International Conference on Learning Representations, 2017.
+\item [[16]]
+M. Gori, G. Monfardini, and F. Scarselli, “A new model for
+learning in graph domains,” in Proceedings of the International Joint
+Conference on Neural Networks, vol. 2. IEEE, 2005, pp. 729–734.
+\item [[17]]
+F. Scarselli, M. Gori, A. C. Tsoi, M. Hagenbuchner, and G. Monfardini, “The graph neural network model,” IEEE Transactions on
+Neural Networks, vol. 20, no. 1, pp. 61–80, 2009.
+\item [[18]]
+Y. Li, D. Tarlow, M. Brockschmidt, and R. Zemel, “Gated graph
+sequence neural networks,” in Proceedings of the International
+Conference on Learning Representations, 2015.
+\item [[19]]
+H. Dai, Z. Kozareva, B. Dai, A. Smola, and L. Song, “Learning
+steady-states of iterative algorithms over graphs,” in Proceedings
+of the International Conference on Machine Learning, 2018, pp. 1114–
+1122.
+\item [[20]]
+J. Bruna, W. Zaremba, A. Szlam, and Y. LeCun, “Spectral networks and locally connected networks on graphs,” in Proceedings
+of International Conference on Learning Representations, 2014.
+\item [[21]]
+M. Henaff, J. Bruna, and Y. LeCun, “Deep convolutional networks
+on graph-structured data,” arXiv preprint arXiv:1506.05163, 2015
+\item [[22]]
+R. Li, S. Wang, F. Zhu, and J. Huang, “Adaptive graph convolutional neural networks,” in Proceedings of the AAAI Conference on
+Artificial Intelligence, 2018, pp. 3546–3553.
+\item [[23]]
+R. Levie, F. Monti, X. Bresson, and M. M. Bronstein, “Cayleynets:
+Graph convolutional neural networks with complex rational
+spectral filters,” arXiv preprint arXiv:1705.07664, 2017.
+\item [[24]]
+W. Hamilton, Z. Ying, and J. Leskovec, “Inductive representation
+learning on large graphs,” in Advances in Neural Information
+Processing Systems, 2017, pp. 1024–1034.
+\item [[25]]
+A Comprehensive Survey on Graph Neural
+Networks
+Zonghan Wu, Shirui Pan, Member, IEEE, Fengwen Chen, Guodong Long,
+Chengqi Zhang, Senior Member, IEEE, Philip S. Yu, Fellow, IEEE
+\end{itemize}
+\end{document}

@@ -1,0 +1,250 @@
+\documentclass[11pt, thmnum, eqsecnum, allcites, dark]{mathbeamer}
+
+\input{slides/usrdef}
+
+\title[\sc Trigonometric \& Integration]{\sc Induction of N-th power \\ indefinite integral of trigonometric functions}
+\author{Yu Chang, Xie Dongchen}
+\date{\today}
+\institute[UESTC]{Software Engineering, UESTC}
+
+\begin{document}
+
+\section{Overview}
+\begin{frame}{Overview: $cosx$ as Example}
+\begin{itemize}[<+->]
+\item $$\int cos^1x \cdot {\rm d}x = sinx + C$$
+\item $$\int cos^2x \cdot{\rm d}x = \int \frac{1 + cos2x}{2}\cdot {\rm d}x = \frac{x}{2} + \frac{1}{4}sin2x + C$$
+\item $$\int cos^3x \cdot{\rm d}x = \int (1 - sin^2x) {\rm d}sinx = sinx - \frac{1}{3}sin^3x + C$$
+\item \qquad \qquad \qquad \qquad \qquad \qquad \qquad \ldots
+\item   \qquad How about the form of $\int cos^nx {\rm d}x$ ?
+\end{itemize}
+\end{frame}
+
+\section{Target}
+\begin{frame}{Target of subject}
+\begin{block}{Target 1.}
+    $\int cos^nx {\rm d}x$,$\int sin^nx {\rm d}x$, n as odd and even
+  \end{block}
+  \begin{block}{Target 2.}
+    $\int sec^nx {\rm d}x$,$\int csc^nx {\rm d}x$, n as odd and even
+  \end{block}
+\end{frame}
+
+\section{sin(x)}
+\begin{frame}{$\int sin^nx {\rm d}x$, n as odd}
+\begin{itemize}[<+->]
+\item Extract a $-sinx$ as ${\rm d}cosx$
+\item $\int sin^nx \cdot {\rm d}x = - \int sin^{n-1}x {\rm d}cosx $
+\item $ = - \int (1-cos^2x)^{\frac{n-1}{2}} \cdot {\rm d}cosx $
+\item Let $cosx=u$, $\frac{n-1}{2}=t$
+\item $ = - \int (1-u^2)^{t} \cdot {\rm d}u $
+\item $ = - \int C_{t}^0 \cdot u^0 - C_{t}^1 \cdot u^2 + C_{t}^2 \cdot u^4 + \ldots + C_{t}^i \cdot (-u^2)^i \cdot {\rm d}u $
+\item $ = - [C_{t}^0 \cdot u - \frac{1}{3} \cdot C_{t}^1 \cdot u^3 + \frac{1}{5} \cdot C_{t}^2 \cdot u^5 + \ldots + (-1)^i \cdot \frac{1}{2i+1} \cdot C_{t}^i \cdot u^{2i+1}] + C$
+\item simplify, we get:
+  \begin{block}{Theorem 1.}
+\qquad n as odd positive integer
+    $$\int sin^nx \cdot {\rm d}x = \sum_{i=0}^{\frac{n-1}{2}} \frac{(-1)^{i+1} \cdot C_{\frac{n-1}{2}}^{i}}{2i+1} \cdot cos^{2i+1}x \cdot {\rm d}x + C$$
+  \end{block}
+\end{itemize}
+\end{frame}
+
+\section{cos(x)}
+\begin{frame}{$\int cos^nx {\rm d}x$, n as odd}
+\begin{itemize}[<+->]
+\item Extract a $cosx$ as ${\rm d}sinx$
+\item $\int cos^nx \cdot {\rm d}x = \int cos^{n-1}x {\rm d}sinx $
+\item $ = \int (1-sin^2x)^{\frac{n-1}{2}} \cdot {\rm d}sinx $
+\item Let $sinx=u$, $\frac{n-1}{2}=t$
+\item $ = \int (1-u^2)^{t} \cdot {\rm d}u $
+\item $ = \int C_{t}^0 \cdot u^0 - C_{t}^1 \cdot u^2 + C_{t}^2 \cdot u^4 + \ldots + C_{t}^i \cdot (-u^2)^i \cdot {\rm d}u $
+\item $ = [C_{t}^0 \cdot u - \frac{1}{3} \cdot C_{t}^1 \cdot u^3 + \frac{1}{5} \cdot C_{t}^2 \cdot u^5 + \ldots + (-1)^i \cdot \frac{1}{2i+1} \cdot C_{t}^i \cdot u^{2i+1}] + C$
+\item simplify, we get:
+  \begin{block}{Theorem 2.}
+\qquad n as odd positive integer
+    $$\int cos^nx \cdot {\rm d}x = \sum_{i=0}^{\frac{n-1}{2}} \frac{(-1)^{i} \cdot C_{\frac{n-1}{2}}^{i}}{2i+1} \cdot sin^{2i+1}x \cdot{\rm d}x + C$$
+  \end{block}
+\end{itemize}
+\end{frame}
+
+\section{Sequence of $\int cos^n(x)$}
+\begin{frame}{Sequence of $\int cos^n(x)$}
+\begin{itemize}[<+->]
+\item Let $I_n = \int cos^nx \cdot {\rm d}x = \int cos^{n-1}x \cdot {\rm d}sinx$
+\item Use Integral Subsection
+\item $ = cos^{n-1}x \cdot sinx + \int (n-1) \cdot cos^{n-2}x \cdot sinx \cdot sinx \cdot {\rm d}x$
+\item $ = cos^{n-1}x \cdot sinx + (n-1) \int cos^{n-2}x \cdot (1-cos^2x) \cdot {\rm d}x$
+\item $ = cos^{n-1}x \cdot sinx + (n-1) \int cos^{n-2}x \cdot {\rm d}x - (n-1) \int cos^{n}x \cdot {\rm d}x$
+\item $ = cos^{n-1}x \cdot sinx + (n-1) I_{n-2} - (n-1) I_n$
+\item simplify, we get:
+  \begin{block}{Theorem 3.}
+ $$I_0 = x, I_1 = sinx, I_n = \frac{cos^{n-1}x \cdot sinx}{n} + \frac{n-1}{n} \cdot I_{n-2} (n \geq 2)$$
+  \end{block}
+\end{itemize}
+\end{frame}
+
+\section{Sequence of $\int cos^n(x)$}
+\begin{frame}{Sequence of $\int cos^n(x)$}
+\begin{itemize}[<+->]
+\item n as even
+  \begin{block}{Theorem 3.}
+ $$I_0 = x, I_1 = sinx, I_n = \frac{cos^{n-1}x \cdot sinx}{n} + \frac{n-1}{n} \cdot I_{n-2} (n \geq 2)$$
+  \end{block}
+\item Considering the contribution of $I_{n-2k}$ to $I_n$
+\item $$\frac{cos^{n-2k-1}x \cdot sinx}{n-2k} \cdot \frac{n-2k+1}{n-2k+2} \cdot \frac{n-2k+3}{n-2k+4} \cdot \ldots \cdot \frac{n-1}{n}$$
+\item $$=cos^{n-2k-1}x \cdot sinx \cdot \frac{(n-1)!!}{n!!} \cdot \frac{(n-2k-2)!!}{(n-2k-1)!!}$$
+\item In particular, when $k=\frac{n}{2}$, the contribution is $$x \cdot \frac{1}{2} \cdot \frac{3}{4} \cdot \ldots \cdot\frac{n-1}{n} = \frac{x \cdot (n-1)!!}{n!!} $$
+\end{itemize}
+\end{frame}
+
+\section{Sequence of $\int cos^n(x)$}
+\begin{frame}{Sequence of $\int cos^n(x)$}
+\begin{itemize}[<+->]
+\item n as even
+  \begin{block}{Theorem 3.}
+ $$I_0 = x, I_1 = sinx, I_n = \frac{cos^{n-1}x \cdot sinx}{n} + \frac{n-1}{n} \cdot I_{n-2} (n \geq 2)$$
+  \end{block}
+\item To sum, we get:
+$\int cos^nx \cdot {\rm d}x = \frac{(n-1)!!}{n!!}[sinx \sum_{k=0}^{\frac{n-1}{2}-1} \cdot \frac{(n-2k-2)!!}{(n-2k-1)!!} \cdot cos^{n-2k-1}x + x] + C$
+\item simplify, we get:
+  \begin{block}{Theorem 3.1}
+n as postive even integer
+ $$\int cos^nx \cdot {\rm d}x = \frac{(n-1)!!}{n!!}[sinx \sum_{i=0}^{\frac{n}{2}-1} \cdot \frac{(2i)!!}{(2i+1)!!} \cdot cos^{2i+1}x + x] + C$$
+  \end{block}
+\end{itemize}
+\end{frame}
+
+\section{Sequence of $\int sin^n(x)$}
+\begin{frame}{Sequence of $\int sin^n(x)$}
+\begin{itemize}[<+->]
+\item n as even, similarly, we get:
+  \begin{block}{Theorem 4.}
+ $$I_0 = x, I_1 = -cosx, I_n = -\frac{sin^{n-1}x \cdot cosx}{n} + \frac{n-1}{n} \cdot I_{n-2} (n \geq 2)$$
+  \end{block}
+\item Considering the contribution of $I_{n-2k}$ to $I_n$
+\item $=-sin^{n-2k-1}x \cdot cosx \cdot \frac{(n-1)!!}{n!!} \cdot \frac{(n-2k-2)!!}{(n-2k-1)!!}$
+  \begin{block}{Theorem 4.1}
+n as postive even integer
+ $$\int sin^nx \cdot {\rm d}x = \frac{(n-1)!!}{n!!} \cdot [x - cosx \sum_{i=0}^{\frac{n}{2}-1} \cdot \frac{(2i)!!}{(2i+1)!!} \cdot cos^{2i+1}x] + C$$
+  \end{block}
+\end{itemize}
+\end{frame}
+
+\section{Sequence of $\int sin^n(x)$}
+\begin{frame}{Sequence of $\int sin^n(x)$}
+\begin{itemize}[<+->]
+\item n as odd
+  \begin{block}{Theorem 4.}
+ $$I_0 = x, I_1 = -cosx, I_n = -\frac{sin^{n-1}x \cdot cosx}{n} + \frac{n-1}{n} \cdot I_{n-2} (n \geq 2)$$
+  \end{block}
+\item Considering the contribution of $I_{n-2k}$ to $I_n$
+\item $=-sin^{n-2k-1}x \cdot cosx \cdot \frac{(n-1)!!}{n!!} \cdot \frac{(n-2k-2)!!}{(n-2k-1)!!}$
+  \begin{block}{Theorem 4.2}
+n as postive odd integer
+  $$\int sin^nx \cdot {\rm d}x = -\frac{(n-1)!!}{n!!} \cdot cosx \sum_{i=0}^{\frac{n-1}{2}} \cdot \frac{(2i)!!}{(2i-1)!!} \cdot sin^{2i}x + C$$
+  \end{block}
+\end{itemize}
+\end{frame}
+
+\section{Sequence of $\int sin^n(x)$}
+\begin{frame}{Sequence of $\int sin^n(x)$}
+\begin{itemize}[<+->]
+  \begin{block}{Theorem 4.1,4.2}
+n as postive even integer
+ $\int sin^nx \cdot {\rm d}x = \frac{(n-1)!!}{n!!} \cdot [x - cosx \sum_{i=0}^{\frac{n}{2}-1} \cdot \frac{(2i)!!}{(2i+1)!!} \cdot sin^{2i+1}x] + C$
+n as postive odd integer
+ $\int sin^nx \cdot {\rm d}x = -\frac{(n-1)!!}{n!!} \cdot cosx \sum_{i=0}^{\frac{n-1}{2}} \cdot \frac{(2i)!!}{(2i-1)!!} \cdot sin^{2i}x + C$
+  \end{block}
+\item Consider the definite integral of the $(0,\frac{\pi}{2})$
+\item We can derive the Wallis formula:
+  \begin{block}{Wallis formula}
+$$\int_{0}^{\frac{\pi}{2}} sin^nx \cdot {\rm d}x
+\begin{cases}
+\frac{(2m-1)!!}{(2m)!!} \cdot \frac{\pi}{2} & n=2m\\\\
+\frac{(2m)!!}{(2m+1)!!}& n=2m+1
+\end{cases}$$
+  \end{block}
+\end{itemize}
+\end{frame}
+
+\section{Sequence of $\int sec^n(x)$}
+\begin{frame}{Sequence of $\int sec^n(x)$}
+\begin{itemize}[<+->]
+\item Let $I_n = \int sec^nx \cdot {\rm d}x = \int sec^{n-2}x \cdot {\rm d}tanx$
+\item Use Integral Subsection
+\item $ = sec^{n-2}x \cdot tanx - \int (n-2) \cdot sec^{n-3}x \cdot tanx \cdot secx \cdot tanx \cdot {\rm d}x$
+\item $ = sec^{n-2}x \cdot tanx - (n-2) \int sec^{n}x \cdot {\rm d}x + (n-2) \int sec^{n-2}x \cdot {\rm d}x$
+\item $ = sec^{n-2}x \cdot tanx - (n-2) \cdot I_n + (n-2)  \cdot I_{n-2} $
+\item simplify, we get:
+  \begin{block}{Theorem 5.}
+ $$I_0 = x, I_1 = \ln \mid secx + tanx \mid , I_n = \frac{sec^{n-2}x \cdot tanx}{n-1} + \frac{n-2}{n-1} \cdot I_{n-2} (n \geq 2)$$
+  \end{block}
+\end{itemize}
+\end{frame}
+
+\section{Sequence of $\int sec^n(x)$}
+\begin{frame}{Sequence of $\int sec^n(x)$}
+\begin{itemize}[<+->]
+  \begin{block}{Theorem 5.}
+ $$I_0 = x, I_1 = \ln \mid secx + tanx \mid , I_n = \frac{sec^{n-2}x \cdot tanx}{n-1} + \frac{n-2}{n-1} \cdot I_{n-2} (n \geq 2)$$
+  \end{block}
+\item Considering the contribution of $I_{n-2k}$ to $I_n$
+\item $$\frac{sec^{n-2k-2}x \cdot tanx}{n-2k-1} \cdot \frac{n-2k}{n-2k+1} \cdot \frac{n-2k+2}{n-2k+3} \cdot \ldots \cdot \frac{n-2}{n-1}$$
+\item $$=sec^{n-2k-2}x \cdot tanx \cdot \frac{(n-2)!!}{(n-1)!!} \cdot \frac{(n-2k-3)!!}{(n-2k-2)!!}$$
+\item In particular, when $k=\frac{n-1}{2}$ and $n$ as odd, the contribution is $$\ln \mid secx + tanx \mid \cdot \frac{1}{2} \cdot \frac{3}{4} \cdot \ldots \cdot\frac{n-2}{n-1} = \frac{\ln \mid secx + tanx \mid \cdot (n-2)!!}{(n-1)!!} $$
+\end{itemize}
+\end{frame}
+
+\section{Sequence of $\int sec^n(x)$}
+\begin{frame}{Sequence of $\int sec^n(x)$}
+\begin{itemize}[<+->]
+  \begin{block}{Theorem 5.}
+ $I_0 = x, I_1 = \ln \mid secx + tanx \mid , I_n = \frac{sec^{n-2}x \cdot tanx}{n-1} + \frac{n-2}{n-1} \cdot I_{n-2} (n \geq 2)$
+  \end{block}
+\item n as even, let $n-2k=2t$
+$I_n = \sum_{t=2}^{\frac{n}{2}} \frac{(n-2)!!}{(n-1)!!} \cdot \frac{(2t-3)!!}{(2t-2)!!} \cdot sec^{2t-2}x \cdot tanx + \frac{n-2}{n-1} + \cdot \frac{n-4}{n-3} \cdot \ldots \cdot \frac{1}{2} \cdot tanx + C$
+$= \frac{(n-2)!!}{(n-1)!!} [ \sum_{t=2}^{\frac{n}{2}}  \frac{(2t-3)!!}{(2t-2)!!} \cdot sec^{2t-2}x \cdot tanx + tanx] + C$
+
+\item Considering $(-1)!!=1$,$(0)!!=1$, we get:
+  \begin{block}{Theorem 5.1}
+n as even postive integer
+$$\int sec^nx \cdot {\rm d}x = \frac{(n-2)!!}{(n-1)!!} \sum_{t=1}^{\frac{n}{2}}  \frac{(2t-3)!!}{(2t-2)!!} \cdot sec^{2t-2}x \cdot tanx + C$$
+\end{block}
+\end{itemize}
+\end{frame}
+
+\section{Sequence of $\int sec^n(x)$}
+\begin{frame}{Sequence of $\int sec^n(x)$}
+\begin{itemize}[<+->]
+  \begin{block}{Theorem 5.}
+ $I_0 = x, I_1 = \ln \mid secx + tanx \mid , I_n = \frac{sec^{n-2}x \cdot tanx}{n-1} + \frac{n-2}{n-1} \cdot I_{n-2} (n \geq 2)$
+  \end{block}
+\item n as odd, let $n-2k=2t+1$
+$I_n = \sum_{t=1}^{\frac{n-1}{2}} \frac{(n-2)!!}{(n-1)!!} \cdot \frac{(2t-2)!!}{(2t-1)!!} \cdot sec^{2t-1}x \cdot tanx + \frac{n-2}{n-1} + \cdot \frac{n-4}{n-3} \cdot \ldots \cdot \frac{1}{2} \cdot \ln \mid secx + tanx \mid + C$
+$= \frac{(n-2)!!}{(n-1)!!} [ \sum_{t=2}^{\frac{n}{2}}  \frac{(2t-3)!!}{(2t-2)!!} \cdot sec^{2t-2}x \cdot tanx + \ln \mid secx + tanx \mid] + C$
+
+\item Simplify, we get:
+  \begin{block}{Theorem 5.2}
+n as odd postive integer
+$$\int sec^nx \cdot {\rm d}x = \frac{(n-2)!!}{(n-1)!!} [ \sum_{t=1}^{\frac{n-1}{2}}  \frac{(2t-2)!!}{(2t-1)!!} \cdot sec^{2t-2}x \cdot tanx +  \ln \mid secx + tanx \mid] + C$$
+\end{block}
+\end{itemize}
+\end{frame}
+
+\section{$\int cot^n(x)$}
+\begin{frame}{$\int cot^n(x)$}
+\begin{itemize}[<+->]
+\item To calculate $ \int cos^nx \cdot {\rm d}x$, just need to substitude $x=m+\frac{\pi}{2}$
+\item ${\rm d}m = {\rm d}x$$
+\item simplify, we get:
+
+  \begin{block}{Theorem 6.1,6.2}
+n as even postive integer
+$$\int csc^nx \cdot {\rm d}x = - \frac{(n-2)!!}{(n-1)!!} \sum_{t=1}^{\frac{n}{2}}  \frac{(2t-3)!!}{(2t-2)!!} \cdot csc^{2t-2}x \cdot cot + C$$
+n as odd postive integer
+$$\int csc^nx \cdot {\rm d}x = \frac{(n-2)!!}{(n-1)!!} [  \ln \mid cscx - cotx \mid - \sum_{t=1}^{\frac{n-1}{2}}  \frac{(2t-2)!!}{(2t-1)!!} \cdot csc^{2t-1}x \cdot cotx] + C$$
+\end{block}
+
+\end{itemize}
+\end{frame}
+
+\end{document}
