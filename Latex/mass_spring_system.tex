@@ -1,0 +1,288 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{color}
+\usepackage{algorithm}  
+\usepackage{algpseudocode}  
+\usepackage{amsthm,amsmath,amssymb}
+\usepackage{mathrsfs}
+
+\usepackage{tablists}
+\restorelistitem
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\usepackage{tikz}
+\usepackage{verbatim}
+\usetikzlibrary{trees}
+
+\title{多种显隐式时间积分器求解弹簧质点系统}
+\author{余畅 \\ 2019091621002， 信息与软件工程学院}
+\begin{document}
+\maketitle
+
+\section{摘要}
+\textbf{关键词：弹簧质点系统，欧拉法，Runge-Kutta，Jacobi迭代，Gauss-Seidel迭代} \par
+弹簧质点系统作为简单的物理模型，在许多仿真模拟中都有着广泛的应用。本文着重推导了弹簧质点系统的数值模拟方法，分析显式隐式欧拉法的数值稳定性，并在最终实现了多种显隐式时间积分器求解弹簧质点系统。最终通过对各个仿真结果和性能的比较，得出了较为优越的方法。
+
+\section{背景介绍}
+弹簧质点模型是利用牛顿运动定律来模拟物体变形的方法。其核心是把布料的形状用微分方程来表示。该模型结合布的物理属性, 如质量、硬度和弹性等布的材料属性, 运用力学理论建立起微分方程。
+
+\section{模型推导}
+
+\subsection{受力分析}
+
+弹簧质点的运动遵循牛顿第二定律。对模型整体进行受力分析，其同时受到内力和外力的影响，其中内力包括弹簧的弹性力和阻尼力，外力则是重力、空气阻力、与边界碰撞产生的弹力或是人为对系统的扰动等；对每一个质点进行受力分析，其受到的外力包括与其直接相连的弹簧提供的拉力和其他力。由此可见，弹簧质点系统将动能和重力势能储存在质点中，将弹性势能储存在弹簧中。\par
+
+\subsubsection{弹性力}
+
+弹簧的弹性力遵从 Hooke 定律，即在弹性极限内,弹性物体的应力与应变成正比。此处的建模中假设弹簧为理想情况，即弹簧可无限拉伸或者收缩。若质点 $i$ 和质点 $j$ 之间存在弹簧相连，则弹性力可以表示为：
+
+\begin{large}
+\begin{equation}
+\begin{split}
+&\mathbf{f}_i = \mathbf{f}^s(\mathbf{x}_i, \mathbf{x}_j)=k_s \widehat{\mathbf{x}_{ij}} (\lvert \mathbf{x}_{ij} \rvert - l_0) \\
+&\mathbf{f}_j = \mathbf{f}^s(\mathbf{x}_j, \mathbf{x}_i)=-\mathbf{f}^s(\mathbf{x}_i, \mathbf{x}_j)=-\mathbf{f}_i
+\end{split}
+\end{equation}
+\end{large}
+
+其中 \begin{large} $\lvert \mathbf{x}_{ij} \rvert = \lvert \mathbf{x}_{j} - \mathbf{x}_{i} \rvert$ \end{large}，\begin{large}$\widehat{\mathbf{x}_{ij}} = \cfrac{\mathbf{x}_{j} - \mathbf{x}_{i}}{ \lvert \mathbf{x}_{j} - \mathbf{x}_{i} \rvert}$ \end{large}，\begin{large}$ \mathbf{x}_i $\end{large} 表示质点 $i$ 的位置矢量，$l_0$ 表示弹簧的自然长度。 \par
+
+\subsubsection{阻尼力}
+
+考虑到现实中，弹簧在振动过程中会由于摩擦力、空气阻力等损耗振动幅度不断衰减。物理学和工程学上，阻尼的力学模型一般是一个与振动速度大小成正比，与振动速度方向相反的力，即线性粘性阻尼模型，可以表示为：
+
+\begin{large}
+\begin{equation}
+\begin{split}
+&\mathbf{f}_i = \mathbf{f}^d(\mathbf{x}_i, \mathbf{v}_i, \mathbf{x}_j, \mathbf{v}_j)=-k_d \widehat{\mathbf{x}_{ij}} (\widehat{\mathbf{x}_{ij}} \cdot \mathbf{v}_{ij}) \\
+&\mathbf{f}_j = \mathbf{f}^d(\mathbf{x}_j, \mathbf{v}_j, \mathbf{x}_i, \mathbf{v}_i)=-\mathbf{f}_i
+\end{split}
+\end{equation}
+\end{large}
+
+其中 \begin{large}$\mathbf{v}_{ij} = \mathbf{v}_j - \mathbf{v}_i$\end{large}，$k_d$ 表示阻尼系数，$\mathbf{v}_i$ 表示质点 $i$ 的速度矢量。 \par
+
+\subsubsection{其他力}
+
+建模时采用理想的外部条件，仅考虑大小方向不随时间变化的常力 \begin{large}$\mathbf{G}_i = m_i g$\end{large} \par
+
+\subsection{显式求解}
+
+解算弹簧质点模型的关键是牛顿运动定律 $\mathbf{f} = m \ddot{\mathbf{x}}$。将该二阶微分方程改写为两个一阶微分方程：
+
+\begin{large}
+\begin{equation}
+\begin{split}
+&\dot{\mathbf{v}} = \mathbf{f}(\mathbf{x}, \mathbf{v}) / m \\
+&\dot{\mathbf{x}} = \mathbf{v}
+\end{split}
+\end{equation}
+\end{large}
+
+则现问题为令 $\mathbf{x}$ 和 $\mathbf{v}$ 同时对时间 $t$ 进行数值积分。其中最简单的方法称为显式欧拉法（Explicit Euler's Method）。
+
+\subsubsection{显式欧拉法（Explicit Euler's Method）}
+
+令 $\mathbf{x}$ 的初始值为 $\mathbf{x}_0 = \mathbf{x}(t_0)$，$\mathbf{v}$ 的初始值为 $\mathbf{v}_0 = \mathbf{v}(t_0)$。我们需要估计的是此后时间 $t_0 + h$ 时刻的 $\mathbf{x}(t_0+h)$ 和 $\mathbf{v}(t_0 + h)$，其中 $h$ 是一个积分步长参数。欧拉法简单地通过在导数方向乘上 $h$ （沿着切线斜率方向移动）来计算 $\mathbf{x}(t_0+h)$ 和 $\mathbf{v}(t_0 + h)$，求解上述微分方程可以得到：
+
+\begin{large}
+\begin{equation}
+\begin{split}
+& \mathbf{v}(t_0 + h) = \mathbf{v}(t_0) + h \mathbf{f}(\mathbf{x}(t_0), \mathbf{v}(t_0)) / m \\
+& \mathbf{x}(t_0 + h) = \mathbf{x}(t_0) + h \mathbf{v} (t_0)
+\end{split}
+\end{equation}
+\end{large}
+
+下面对欧拉法做局部截断误差（local truncation error）分析，假设 $v(t)$ 光滑，对其泰勒展开得： \par
+
+\begin{large}
+\begin{equation}
+\mathbf{v}(t_0+h) = \mathbf{v}(t_0) + h \dot{\mathbf{v}} + \frac{h^2}{2!} \ddot{\mathbf{v}}(t_0) + 
+\frac{h^3}{3!} \dddot{\mathbf{v}}(t_0)+...+ \frac{h^n}{n!} \frac{\partial^n \mathbf{v}}{\partial t^n} + ...
+\end{equation}
+\end{large}
+
+移项可知，欧拉法的误差项为 $O(h^2)$，相较于其他一些高阶方法，其数值准确度较低。 \par
+
+实际仿真过程中，本文利用 \begin{large} $E = \sum_{i} m_ig\mathbf{x}_y + \cfrac{1}{2} m_i \mathbf{v}_{i}^{2} + \cfrac{1}{2} k_s \mathbf{x}_{i}^{2}$ \end{large} 来拟合弹簧质点系统整体的机械能，发现随着迭代次数的增加，系统整体的能量错误的随着时间 $t$ 的增大而不断增大，远达不到预期的准确度，且在阻尼系数 $k_d$ 较小时，误差会过快的累积使得系统爆炸。
+
+显式欧拉法最大的优势是积分表达式简单且易于快速求解，但是其数值精度的误差较大，且具有较大的数值不稳定性，所以只适合较小的积分步长 $h$，其中保持系统稳定的 $h$ 的上界和弹簧的劲度系数 $k_s$ 有关，为 $h \le c \sqrt{\cfrac{m}{k_s}}$，$c$ 为常数且 $c \sim 1$。直观理解来看，弹簧振子的周期为 $\mathbf{T} = 2 \pi \sqrt{\cfrac{m}{k_s}}$，如果不能完整模拟弹簧一个周期或半周期的振荡，其数值积分解就会发散而导致系统爆炸。如果弹簧的劲度过大接近于刚体，$h$ 将限制在一个较小的范围里，相同的计算时长只能模拟的更小的时间跨度，极大地影响了计算效率。 \par
+
+对显式欧拉法进行简单改进，可以得到半隐式欧拉法（Semi-implicit Euler's Method）。
+
+\subsubsection{半隐式欧拉法（Semi-implicit Euler's Method）}
+
+\begin{large}
+\begin{equation}
+\begin{split}
+& \mathbf{v}(t_0 + h) = \mathbf{v}(t_0) + h \mathbf{f}(\mathbf{x}(t_0), \mathbf{v}(t_0)) / m \\
+& \mathbf{x}(t_0 + h) = \mathbf{x}(t_0) + h \mathbf{v} (t_0 + h)
+\end{split}
+\end{equation}
+\end{large}
+
+式 $(6)$ 和式 $(5)$ 的不同之处仅在于对 $\mathbf{x}$ 积分时使用的是 $\mathbf{v} (t_0 + h)$ 而不是 $\mathbf{v} (t_0)$，但是在数值准确性上有了本质的提升。尽管和显式欧拉法一样是 $O(h^2)$ 的误差项，但半隐式欧拉法本质上是一种辛算法（symplectic integrator），因而可以几乎保持能量守恒（当哈密顿量与时间无关时）。
+
+\subsubsection{中点法（Midpoint Method）}
+
+注意到显式欧拉法和半隐式欧拉法误差项为 $O(h^2)$ 的原因在于在 $(5)$ 式中，我们仅将对 $\mathbf{v}(t_0+h)$ 的估计局部截断为 $\mathbf{v}(t_0) + h \dot{\mathbf{v}}(t_0)$，如果我们能像计算 $\dot{\mathbf{v}}$ 一样计算 $\ddot{\mathbf{v}}$，则能通过在泰勒展开中额外保留一项达到 $O(h^3)$ 的准确度：
+
+\begin{large}
+\begin{equation}
+\mathbf{v}(t_0+h) = \mathbf{v}(t_0) + h \dot{\mathbf{v}}(t_0) + \frac{h^2}{2} \ddot{\mathbf{v}}(t_0) + O(h^3)
+\end{equation}
+\end{large}
+
+注意到 \begin{large}$\dot{\mathbf{v}}(t_0)=\mathbf{f}(\mathbf{x}(t_0), \mathbf{v}(t_0))$\end{large}，用链式求导法则得到：
+
+\begin{large}
+\begin{equation}
+\ddot{\mathbf{v}} = \frac{\partial \mathbf{f}}{\partial \mathbf{v}} \dot{\mathbf{v}} = \mathbf{f_v} \mathbf{f}
+\end{equation}
+\end{large}
+
+为了避免进行昂贵和复杂的对 $\mathbf{f}$ 进行直接求导，我们可以近似的用二阶项来估计 $\mathbf{f}$，然后将其代入式 $(7)$ 中，留下 $O(h^3)$ 的误差项。对此我们对 $\mathbf{f}$ 进行另一次泰勒展开得到：
+
+\begin{large}
+\begin{equation}
+f(\mathbf{x_0}, \mathbf{v_0} + \Delta \mathbf{v}) = f(\mathbf{x_0}, \mathbf{v_0}) + \Delta \mathbf{v} f_v(\mathbf{x_0}, \mathbf{v_0}) + O(\Delta \mathbf{v}^2)
+\end{equation}
+\end{large}
+
+首先引入 \begin{large} $\ddot{\mathbf{v}}$ \end{large} 通过选择：
+
+\begin{large}
+\begin{equation}
+\Delta \mathbf{v} = \frac{h}{2} f(\mathbf{x}_0)
+\end{equation}
+\end{large}
+
+代入得：
+
+\begin{large}
+\begin{equation}
+\begin{split}
+f(\mathbf{x_0}, \mathbf{v_0} + \frac{h}{2} f(\mathbf{x}_0)) &= f(\mathbf{x_0}, \mathbf{v_0}) + \frac{h}{2} f(\mathbf{x}_0) f_v(\mathbf{x_0}, \mathbf{v_0}) + O(h^2) \\ &= f(\mathbf{x_0}, \mathbf{v_0}) + \frac{h}{2} \ddot{\mathbf{v}}(t_0) + O(h^2)
+\end{split}
+\end{equation}
+\end{large}
+
+其中 \begin{large} $\mathbf{x_0} = \mathbf{x}(t_0)$ \end{large}，\begin{large} $\mathbf{v_0} = \mathbf{v}(t_0)$ \end{large}。在等式两侧同时乘上 $h$ （其中 $O(h^2)$ 的误差项变为 $O(h^3)$），整理可得：
+
+\begin{large}
+\begin{equation}
+\frac{h^2}{2} \ddot{\mathbf{v}} + O(h^3) = h(f(\mathbf{x}_0, \mathbf{v}_0 + \frac{h}{2} f(\mathbf{x}_0, \mathbf{v}_0)) - f(\mathbf{x}_0, \mathbf{v}_0))
+\end{equation}
+\end{large}
+
+将 $(12)$ 式等式右侧代入式 $(7)$ 可得到更新过的公式：
+
+\begin{large}
+\begin{equation}
+\mathbf{v}(t_0 + h) = \mathbf{v}(t_0) + hf(\mathbf{x}_0, \mathbf{v}_0 + \frac{h}{2} f(\mathbf{x}_0, \mathbf{v}_0))
+\end{equation}
+\end{large}
+
+直观理解来看，中点法先执行一次步长为\begin{large} $\frac{h}{2}$\end{large}的标准欧拉法，然后取所移动到位置的导数来从原位置重新执行一次移动，由于取导数的位置在标准欧拉法位置的中点，故被称为中点法，其误差项为 $O(h^3)$，但是一次迭代需要计算两次 $\mathbf{f}$。在实际仿真的过程中，中点法的计算时间开销大约是显式/半隐式欧拉法的两倍，但是在处理弹簧高频振荡时相比后者有更高的准确性，且相比后者在弹簧劲度大时更容易保持系统的稳定性。
+
+\subsubsection{龙格-库塔法（Runge-Kutta Method）}
+
+中点法通过在泰勒展开中多保留一项，将误差项从 $O(h^2)$ 降到了 $O(h^3)$，一般地，如果能在泰勒展开中保留更多项，则可以得到更高阶的误差项，这就是龙格-库塔法（Runge-Kutta Method）的思想，特殊地，中点法是二阶 Runge-Kutta 积分。工业和仿真中一般广泛采用的是四阶 Runge-Kutta 积分，其误差项为 $O(h^5)$：
+
+\begin{large}
+\begin{equation}
+\begin{matrix}
+\mathbf{v}_1 = \mathbf{v}^t & \mathbf{a}_1 = f(\mathbf{x}^t, \mathbf{v}^t) / m \\
+\mathbf{v}_2 = \mathbf{v}^t + \cfrac{h}{2} \mathbf{a}_1 & \mathbf{a}_2 = f(\mathbf{x}^t + \cfrac{h}{2} \mathbf{v}_1, \mathbf{v}^t + \cfrac{h}{2} \mathbf{a}_1) / m \\
+\mathbf{v}_3 = \mathbf{v}^t + \cfrac{h}{2} \mathbf{a}_2 & \mathbf{a}_3 = f(\mathbf{x}^t + \cfrac{h}{2} \mathbf{v}_2, \mathbf{v}^t + \cfrac{h}{2} \mathbf{a}_2) / m \\
+\mathbf{v}_4 = \mathbf{v}^t + h \mathbf{a}_3 & \mathbf{a}_4 = f(\mathbf{x}^t + h \mathbf{v}_3, \mathbf{v}^t + h \mathbf{a}_3) / m \\
+\mathbf{x}^{t+1} = \mathbf{x}^{t} + \cfrac{h}{6}(\mathbf{v}_1 + 2\mathbf{v}_2 + 2\mathbf{v}_3 + \mathbf{v}_4)
+& \mathbf{v}^{t+1} = \mathbf{v}^{t} + \cfrac{h}{6}(\mathbf{a}_1 + 2\mathbf{a}_2 + 2\mathbf{a}_3 + \mathbf{a}_4)
+\end{matrix}
+\end{equation}
+\end{large}
+
+其中 $\mathbf{x}^t = \mathbf{x}(t_0)$，$\mathbf{v}^t = \mathbf{v}(t_0)$，$\mathbf{x}^{t+1} = \mathbf{x}(t_0 + h)$，$\mathbf{v}^{t+1} = \mathbf{v}(t_0 + h)$。
+
+\subsection{隐式求解}
+
+隐式欧拉积分比显式欧拉积分具有更高的稳定性，弹簧质点模型的隐式欧拉积分表达式为：
+
+\begin{large}
+\begin{equation}
+\begin{pmatrix}
+\mathbf{v}^{t+h} \\
+\mathbf{x}^{t+h}
+\end{pmatrix}
+=
+\begin{pmatrix}
+\mathbf{v}^{t} + h \mathbf{M}^{-1} \mathbf{f}^{t+h} \\
+\mathbf{x}^{t} + h \mathbf{v} ^ {t+h}
+\end{pmatrix}
+\end{equation}
+\end{large}
+
+将 $ \mathbf{f}^{t+h}$ 一阶泰勒展开 \begin{large} $ \mathbf{f}^{t+h} =  \mathbf{f}^{t} + \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \Delta \mathbf{x} + \cfrac{\partial \mathbf{f}}{\partial \mathbf{v}} \Delta \mathbf{v}$\end{large}，代入式 $(15)$ 得到：
+
+\begin{large}
+\begin{equation}
+\Delta \mathbf{v} = h \mathbf{M}^{-1} \left ( \mathbf{f}^{t} + \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \Delta \mathbf{x} + \cfrac{\partial \mathbf{f}}{\partial \mathbf{v}} \Delta \mathbf{v}  \right ) = 
+h \mathbf{M}^{-1} \left ( \mathbf{f}^{t} + \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} (\mathbf{v}_t + \Delta \mathbf{v}) + \cfrac{\partial \mathbf{f}}{\partial \mathbf{v}} \Delta \mathbf{v}  \right )
+\end{equation}
+\end{large}
+
+整理得：
+
+\begin{large}
+\begin{equation}
+\left ( \mathbf{I} - h \mathbf{M}^{-1} \cfrac{\partial \mathbf{f}}{\partial \mathbf{v}} - h^2 \mathbf{M}^{-1} \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \right ) \Delta \mathbf{v} =
+h  \mathbf{M}^{-1} \left ( \mathbf{f}^{t} + h \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \mathbf{v}^t \right )
+\end{equation}
+\end{large}
+
+将 $(17)$ 式子两边同时乘以 $\mathbf{M}$：
+
+\begin{large}
+\begin{equation}
+\left ( \mathbf{M} - h \cfrac{\partial \mathbf{f}}{\partial \mathbf{v}} - h^2 \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \right ) \Delta \mathbf{v} =
+h \left ( \mathbf{f}^{t} + h \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \mathbf{v}^t \right )
+\end{equation}
+\end{large}
+
+其中 $\mathbf{M}$ 是基于仿真维度以 $3 \times 3$ 或 $2 \times 2$ 对角矩阵为子矩阵的对角矩阵。\begin{large}$\cfrac{\partial \mathbf{f}}{\partial \mathbf{x}}$ \end{large}和 \begin{large} $\cfrac{\partial \mathbf{f}}{\partial \mathbf{v}}$ \end{large}为子矩阵为 $3 \times 3$ 或 $2 \times 2$ 的对称稀疏 Jacobian 矩阵。若质点 $i$ 和质点 $j$ 之间有弹簧相连，则相应的子矩阵元不为 $0$。 \par
+
+已知向量模对向量的导数为：\begin{large}$ \cfrac{\partial \lvert \mathbf{x} \rvert}{\partial \mathbf{x}} = \left ( \cfrac{\mathbf{x}}{\lvert \mathbf{x} \rvert} \right )^T = {\hat{\mathbf{x}}}^T $\end{large}，其中 
+$\hat{\mathbf{x}} = \cfrac{\mathbf{x}}{\lvert \mathbf{x} \rvert}$，单位向量对向量的导数为：\begin{large}$ \cfrac{\partial \hat{\mathbf{x}}}{\partial \mathbf{x}} = \cfrac{\mathbf{I} \lvert \mathbf{x} \rvert - \mathbf{x} \cdot {\hat{\mathbf{x}}}^T}{{\lvert \mathbf{x} \rvert}^2} = \cfrac{\mathbf{I} - \hat{\mathbf{x}} \cdot {\hat{\mathbf{x}}}^T}{\lvert \mathbf{x} \rvert}$ \end{large}。利用以上公式即可推导出 Jacobian 矩阵中子矩阵的表达式：\par
+
+\begin{large}
+\begin{equation}
+\begin{split}
+& \cfrac{\partial \mathbf{f}_i^s}{\partial \mathbf{x}_i} = k_s \left [ \cfrac{\widehat{\mathbf{x}_{ij}} \cdot \widehat{\mathbf{x}_{ij}}^T - \mathbf{I}}{\lvert \mathbf{x}_{ij} \rvert} (\lvert \mathbf{x}_{ij} \rvert - l_0) -  \widehat{\mathbf{x}_{ij}} \cdot \widehat{\mathbf{x}_{ij}}^T \right ] = 
+- \cfrac{\partial \mathbf{f}_j^s}{\partial \mathbf{x}_i} = 
+- \cfrac{\partial \mathbf{f}_i^s}{\partial \mathbf{x}_j} = 
+\cfrac{\partial \mathbf{f}_j^s}{\partial \mathbf{x}_j} \\
+& \cfrac{\partial \mathbf{f}_i^s}{\partial \mathbf{v}_i} = \mathbf{0}
+\end{split}
+\end{equation}
+\end{large}
+
+\begin{large}
+\begin{equation}
+\begin{split}
+& \cfrac{\partial \mathbf{f}_i^d}{\partial \mathbf{x}_i} = -k_d \left[ 
+(\widehat{\mathbf{x}_{ij}}^T \cdot \widehat{\mathbf{v}_{ij}} \cdot \mathbf{I} +
+\widehat{\mathbf{x}_{ij}} \cdot \widehat{\mathbf{v}_{ij}}^T
+) \cdot
+\cfrac{\widehat{\mathbf{x}_{ij}} \cdot \widehat{\mathbf{x}_{ij}}^T - \mathbf{I}}{\lvert \mathbf{x}_{ij} \rvert}
+\right] \\
+& \cfrac{\partial \mathbf{f}_i^d}{\partial \mathbf{v}_i} = k_d \widehat{\mathbf{x}_{ij}} \cdot \widehat{\mathbf{x}_{ij}}^T
+\end{split}
+\end{equation}
+\end{large}
+
+\end{document}
+
+
+
