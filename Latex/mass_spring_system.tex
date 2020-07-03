@@ -4,6 +4,13 @@
 \usepackage{algpseudocode}  
 \usepackage{amsthm,amsmath,amssymb}
 \usepackage{mathrsfs}
+\usepackage[colorlinks,linkcolor=red]{hyperref}
+
+\usepackage{ctex}
+\usepackage{graphicx}
+\usepackage{caption2}
+\usepackage{subfigure}
+\usepackage{float}
 
 \usepackage{tablists}
 \restorelistitem
@@ -25,7 +32,8 @@
 弹簧质点系统作为简单的物理模型，在许多仿真模拟中都有着广泛的应用。本文着重推导了弹簧质点系统的数值模拟方法，分析显式隐式欧拉法的数值稳定性，并在最终实现了多种显隐式时间积分器求解弹簧质点系统。最终通过对各个仿真结果和性能的比较，得出了较为优越的方法。
 
 \section{背景介绍}
-弹簧质点模型是利用牛顿运动定律来模拟物体变形的方法。其核心是把布料的形状用微分方程来表示。该模型结合布的物理属性, 如质量、硬度和弹性等布的材料属性, 运用力学理论建立起微分方程。
+弹簧质点模型是利用牛顿运动定律来模拟物体变形的方法。其核心是把质点之间用无质量的、自然长度不为零的弹簧连接后，用微分方程来的形式表示。该模型结合一些物体现实生活中的物理属性, 如质量、硬度和弹性等材料属性, 运用力学理论建立起微分方程。弹簧质点模型在实际仿真中有许多应用，如结合有限元方法对各种类型的布料或者毛发进行仿真，游戏和影视中常常使用其来解算布料和网格模型的形变，无论是离线模拟还是在线模拟都能取得很好的视觉效果。\par
+本文从弹簧质点模型实际的力学模型出发，使用已学习的微积分和线性代数知识对各种显式隐式时间积分器进行推导，作为下一步仿真模拟的数学依据。最后使用嵌入在 python 中的高性能并行计算语言 Taichi，实现最后的视觉仿真效果。
 
 \section{模型推导}
 
@@ -35,7 +43,7 @@
 
 \subsubsection{弹性力}
 
-弹簧的弹性力遵从 Hooke 定律，即在弹性极限内,弹性物体的应力与应变成正比。此处的建模中假设弹簧为理想情况，即弹簧可无限拉伸或者收缩。若质点 $i$ 和质点 $j$ 之间存在弹簧相连，则弹性力可以表示为：
+弹簧的弹性力遵从 Hooke 定律，即在弹性极限内,弹性物体的应力与应变成正比。本文的建模中假设弹簧为理想情况，即弹簧可无限拉伸或者收缩。若质点 $i$ 和质点 $j$ 之间存在弹簧相连，则弹性力可以表示为：
 
 \begin{large}
 \begin{equation}
@@ -50,7 +58,7 @@
 
 \subsubsection{阻尼力}
 
-考虑到现实中，弹簧在振动过程中会由于摩擦力、空气阻力等损耗振动幅度不断衰减。物理学和工程学上，阻尼的力学模型一般是一个与振动速度大小成正比，与振动速度方向相反的力，即线性粘性阻尼模型，可以表示为：
+考虑到现实中，弹簧在振动过程中会由于摩擦力、空气阻力等损耗振动幅度不断衰减。物理学和工程学上，阻尼的力学模型一般是一个与振动速度大小成正比，与振动速度方向相反的力，即本文采用的线性粘性阻尼模型，可以表示为：
 
 \begin{large}
 \begin{equation}
@@ -65,7 +73,7 @@
 
 \subsubsection{其他力}
 
-建模时采用理想的外部条件，仅考虑大小方向不随时间变化的常力 \begin{large}$\mathbf{G}_i = m_i g$\end{large} \par
+本文建模时采用理想的外部条件，仅考虑大小方向不随时间变化的常力 \begin{large}$\mathbf{G}_i = m_i g$\end{large} \par
 
 \subsection{显式求解}
 
@@ -206,6 +214,8 @@ f(\mathbf{x_0}, \mathbf{v_0} + \frac{h}{2} f(\mathbf{x}_0)) &= f(\mathbf{x_0}, \
 
 其中 $\mathbf{x}^t = \mathbf{x}(t_0)$，$\mathbf{v}^t = \mathbf{v}(t_0)$，$\mathbf{x}^{t+1} = \mathbf{x}(t_0 + h)$，$\mathbf{v}^{t+1} = \mathbf{v}(t_0 + h)$。
 
+龙格-库塔法最大的优势在于选择不同的展开阶数，其误差项也可以达到任意高的阶数，但由于运算复杂度的限制，其并不能展开到很高的程度，本文使用的就是最常用 $4$ 阶展开。但本文使用的龙格-库塔法仍然局限在显式积分器的范畴内，故仍然无法避免使用小的时间步长和在弹簧劲度系数 $k_d$ 过大的情况下产生数值爆炸。
+
 \subsection{隐式求解}
 
 隐式欧拉积分比显式欧拉积分具有更高的稳定性，弹簧质点模型的隐式欧拉积分表达式为：
@@ -281,6 +291,181 @@ $\hat{\mathbf{x}} = \cfrac{\mathbf{x}}{\lvert \mathbf{x} \rvert}$，单位向量
 \end{split}
 \end{equation}
 \end{large}
+
+令 \begin{large}$ \mathbf{A} = \left ( \mathbf{M} - h \cfrac{\partial \mathbf{f}}{\partial \mathbf{v}} - h^2 \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \right ) $\end{large}, \begin{large} $\mathbf{b} = h \left ( \mathbf{f}^{t} + h \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \mathbf{v}^t \right )$ \end{large}，则问题转化为求线性方程组 \begin{large} $\mathbf{Ax = b}$ \end{large}。一个直观的想法是对 $\mathbf{A}$ 取逆，答案就是 $\mathbf{A^-1b}$，然而，在仿真过程中，矩阵求逆是一个昂贵的操作，时间复杂度可以达到 $O(n^3)$（非并行条件下），其中 $n$ 为矩阵的阶数。此外，原问题中，由于并不是每对质点之间都有弹簧相连，\begin{large} $ \mathbf{M} $ \end{large}，\begin{large} $\cfrac{\partial \mathbf{f}}{\partial \mathbf{v}}$ \end{large} 和 \begin{large} $\cfrac{\partial \mathbf{f}}{\partial \mathbf{v}}$ \end{large} 都是稀疏矩阵，其线性运算后的结果 $\mathbf{A}$也是稀疏矩阵，故而所需的存储空间仅和矩阵中非零元的个数相关，远小于 $O(n^2)$，可以用稀疏数据结构存储，反之矩阵求逆之后，稀疏性被破坏，非零元的个数达到 $O(n^2)$，无法直接储存。本文通过实际代码仿真测试，在质点数量达到 $10^2$ 级别时，就无法进行实时的仿真。总结来说，直接求逆操作对计算时间和计算空间都提出了极高的要求，在仿真中较为不实用。 \par
+
+然而，解线性方程组 \begin{large} $\mathbf{Ax = b}$ \end{large} 是一个已知且存在普遍方法的问题，本文采用了以下几种方法求解。
+
+\subsubsection {雅可比迭代法（Jacobi Iterative Method）}
+
+雅可比迭代法首先将矩阵 $\mathbf{A}$ 拆分为 $\mathbf{A=D+E}$，其中 $\mathbf{D}$ 和 $\mathbf{A}$ 对角元相同而其他元为零子矩阵；而 $\mathbf{E=A-D}$，则：
+
+\begin{large}
+\begin{equation}
+\begin{split}
+A&x = b \\
+D&x = -Ex + b \\
+&x = -D^{-1} E x + D^{-1}b \\
+&x = Bx + z
+\end{split}
+\end{equation}
+\end{large}
+
+其中 $B = -D^{-1} E$，$z = D^{-1}b$。由于 $D$ 为对角矩阵，所以其逆很容易求出，由此可以得出迭代求解的方法：
+
+\begin{large}
+\begin{equation}
+x_{(i+1)} = Bx_{(i)} + z
+\end{equation}
+\end{large}
+
+令 $x_{(i)} = x + e_{(i)}$，其中 $e_{(i)}$ 为第 $i$ 次迭代后的误差项，则代入式 $(22)$ 可得：
+
+\begin{large}
+\begin{equation}
+\begin{split}
+x_{(i+1)} &= Bx_{(i)} + z \\
+&= B(x_{(i)} = x + e_{(i)}) + z \\
+&= Bx + z + Be_{(i)} \\
+&= x + Be_{(i)} \text{（公式 21）} \\
+e_{(i+1)} &= Be_{(i)}
+\end{split}
+\end{equation}
+\end{large}
+
+由式 $(23)$ 可知，每次迭代后 $x$ 的部分不会改变（因为其是迭代式的不动点），但是误差项会每次累乘 $B$，如果 $B$ 的谱半径 $\rho (B) < 1$，那么 $i$ 趋向无穷大时误差项就会趋向于 $0$，此时初始向量 $x_{(0)}$ 的选择并不影响最终的收敛结果。由于仿真过程在时间维度上连续且每次的步长较小，所以本文选择将上次迭代的最终结果作为下一次迭代的初始值。更一般的，若 $B$ 的谱半径 $\rho (B) = \lvert \lambda_{j} \rvert > 1$，且 $v_j$ 为对应的特征向量，则将误差项视为特征向量的线性组合的话，$v_j$ 方向将在迭代中收敛的最慢。
+
+\subsubsection {高斯-赛德尔迭代法（Gauss-Seidel Iterative Method）}
+
+同雅可比迭代法一样，高斯-赛德尔迭代法也是基于矩阵分解的原理，其将矩阵拆分为 $\mathbf{A = D - L - U}$，其中 $\mathbf{D}$ 为对角矩阵，$\mathbf{-L}$ 为对角线以上的上三角矩阵，$\mathbf{-U}$ 为对角线以下的下三角矩阵，则：
+
+\begin{large}
+\begin{equation}
+\begin{split}
+A&x = b \\
+(D - L)&x = Ux + b \\
+&x =  (D - L)^{-1} Ux + (D - L)^{-1} b \\ 
+&x = Bx + z
+\end{split}
+\end{equation}
+\end{large}
+
+其中 $B = (D - L)^{-1} U$，$z = (D - L)^{-1} b$。$(D - L)$ 由于是上三角矩阵，其逆可以在 $O(n^2)$ 的时间复杂度内求得。剩余部分的推导和雅可比迭代法类似。
+
+\subsubsection{小结}
+
+隐式欧拉积分法由于 $\mathbf{f}$ 是基于 $\mathbf{x}(t_0 + h)$ 和 $\mathbf{v}(t_0 + h)$ 来求得的，故又被称为后向欧拉法（Backward Euler's Method）。直观理解来看，就是寻找一个位置，其向负导数梯度的方向回退 $h$ 的步长可以返回到 $\mathbf{x}(t_0)$ 的位置。隐式法在牺牲了一定计算时间的情况下，相比显式法有着额外的数值健壮性，时间步长可以取到更大的范围。在本文的实际仿真测试中，显式积分法在 $h = 10^{-3}$ 级别下可以做到稳定模拟，而隐式积分法在 $5$ 至 $8$ 倍的范围内依然可以做到相对近似拟合，且不受弹簧劲度系数的约束，可以做到稳定模拟刚体。 \par
+
+隐式法虽然对于时间步长的限制更低，但是每一步迭代的代价也更为昂贵，且隐式法的算法相比显式法复杂，计算机和编译器难以进行底层优化，基于速度层面的考虑需要同时考虑两者。此外，本文在仿真过程中发现，隐式法自带数值阻尼（Numrical damping），尽管整个系统会快速收敛到稳定，但是一些显式法可以模拟出的高频振荡现象都会丢失，计算系统总能量后也发现，隐式法总机械能比显式法更低，很难保持能量守恒。在一些游戏模拟和影视模拟中，人们倾向于使用稳定的算法，一般会选用隐式法来求解。但是隐式法也可以继续进行改进，注意到式 $(16)$ 仅对函数 $\mathbf{f}$ 进行一阶泰勒展开，借用龙格-库塔法的思想进行多阶泰勒展开（三阶以上），就可以得到能量守恒的解，但相应的计算开销也非常昂贵，一般仅用于离线工程物理仿真。
+
+
+\section{代码实现}
+本文采用 python / Taichi 语言实现所有代码，对于每种不同的时间积分器，其代码实现框架大体如\textbf{算法 1}所示：
+
+\begin{algorithm}
+\caption{Mass-spring system framework}  
+\label{alg: Mass-spring system framework} 
+\begin{algorithmic} [1] 
+    \Function {Mass-Spring-System-Framework}{}
+		\For{$frame = 0 \to max\_frames$}
+		\State \Call{Process-Input}{$frame$}
+		\If{\textbf{not} $paused$}
+			\For{$i = 0 \to max\_steps$}
+				\State \Call{Substep}{$max\_iteration$}
+			\EndFor
+		\EndIf
+		\State \Call{Process-Output}{$frame$}
+		\EndFor
+	\EndFunction  
+\end{algorithmic}
+\end{algorithm}
+
+其中 $max\_frames$ 为程序最长模拟的帧数，$frame$ 为当前模拟的帧数，$max\_steps$ 为每帧需要迭代的次数，$max\_iteration$ 适用于隐式法，为解线性方程组时需要迭代的次数。Process-Input 用于生成处理用户输入和添加/删除质点和弹簧，Process-Output 用于在 GUI 上实时绘制结果，其具体实现与本文关系不大，故不在此赘述。 \par
+
+隐式法有额外构造线性方程组 $\mathbf{Ax=b}$ 的算法，其框架也大体相同，如\textbf{算法2}所示：
+
+\begin{algorithm}
+\caption{Substep for Implicit-Method}  
+\label{alg: Substep for Implicit-Method} 
+\begin{algorithmic} [1] 
+    \Function {Substep}{$iteration$}
+		\State $\mathbf{M} \gets $ \Call{UpdateMassMatrix}{}
+		\State $\cfrac{\partial \mathbf{f}}{\partial \mathbf{x}}$, $\cfrac{\partial \mathbf{f}}{\partial \mathbf{v}} \gets $  \Call{UpdateJacobiMatrix}{}
+		\State $\mathbf{A} \gets $ \Call{UpdateAMatrix} {$\mathbf{M}$, $\cfrac{\partial \mathbf{f}}{\partial \mathbf{x}}$, $\cfrac{\partial \mathbf{f}}{\partial \mathbf{v}}$}
+		\State $\mathbf{F} \gets $ \Call{UpdateFVector}{}
+		\State $\mathbf{b} \gets $ \Call{UpdateBVector}{$\mathbf{F}$}
+		
+		\State $x \gets x_{0}$
+		\For{$step = 0 \to iteration$}
+			\State $x \gets $ \Call{Solver}{$x$, $\mathbf{A}$, $\mathbf{b}$}
+		\EndFor
+
+	\State \Call{UpdateStep}{$x$}
+	\EndFunction  
+
+\end{algorithmic}
+\end{algorithm}
+
+其中 Solver 函数为 Jacobi 迭代或者 Gauss-Seidel 迭代。 \par
+
+额外的，为了在仿真过程中更好的观测到弹簧的振荡效应和分析受力，本文使用以下公式给弹簧着色：
+
+\begin{large}
+\begin{equation}
+\begin{split}
+\max(0, &\mathbf{sigmoid(\lvert \mathbf{x}_i - \mathbf{x}_j \rvert - l_0}) \times \mathbf{RED} + \min(0, \mathbf{sigmoid(\lvert \mathbf{x}_i - \mathbf{x}_j \rvert - l_0}) \times \mathbf{GREEN} \\
+&\mathbf{sigmoid}(x) = \cfrac{2}{1 + \exp(-x \times k_s \times c)} - 1
+\end{split}
+\end{equation}
+\end{large}
+
+其中 $c$ 为一个常数，为了得到较好的显示效果，本文中的取值为 $0.1$。
+
+本文全部代码托管在：\url{https://github.com/g1n0st/GAMES201/tree/master/hw1}
+
+\section{结果展示}
+
+\begin{figure}[H]
+	\raggedleft
+    \includegraphics[width=1.1\textwidth]{result1}
+    \caption{中间帧}
+    \label{Result.1}
+\end{figure}
+
+\begin{figure}[H]
+	\raggedleft
+    \includegraphics[width=1.1\textwidth]{result2}
+    \caption{结束帧}
+    \label{Result.2}
+\end{figure}
+
+从仿真结果来看，显式欧拉法几乎没有稳定性可言，在与地面碰撞后，从能量计算就可以看出误差非常大。从中间帧来看，除了显式欧拉法以外，各算法仿真结果之间的差异还是很小。而在加入高势能的子系统后，系统中出现了高频振荡，半隐式欧拉法表现出了不稳定性，中点法和 Runge-Kutta 法则很好的模拟了弹簧的振荡（从颜色变化可以看出）。Jacobi 迭代和 Gauss-Seidel 迭代由于是隐式法，自带的数值阻尼使得振荡很快收敛。最后的仿真部分模拟了弹簧劲度系数的增大，半隐式欧拉法很快数值爆炸，中点法和 Runge-Kutta 法虽然没有数值爆炸，但是高亮的颜色指示显示出的能量分布表现出拟合误差较大，系统不稳定，隐式法则具有较低的能量，依然保持着稳定性。
+
+从时间复杂度来看，显式方法的优势较为明显，分布在 $1 \sim 3$ 毫秒每帧的范围内，隐式法则为了稳定性牺牲了部分效率，分布在 $10 \sim 20$ 毫秒每帧的范围内。
+
+\section{总结}
+
+本文针对弹簧质点系统受力和求导分析后，使用显式欧拉法，半隐式欧拉法，中点法，Runge-Kutta 法，隐式欧拉法（Jacobi迭代，Gauss-Seidel 迭代）等时间积分器对弹簧质点系统进行求解，并使用 python/Taichi 语言实现了通用的框架，分别实现了每种积分器并通过仿真进行比较，发现在弹簧劲度系数小，时间步长小等较为稳定的情况下，半隐式欧拉法可以在同样较好拟合度的情况下效率最高，而在弹簧劲度系数大，时间步长大等极端条件下，隐式欧拉法可以得到较好的拟合效果而保持系统的稳定性，但同时会出现能量损失的情况。如果需要更高精度的隐式欧拉法，则需要在推导隐式法时使用泰勒展开展开到更高阶，但是同样会需要更高的时间复杂度，仅在需要极高精度的情况下使用。
+
+\section{参考文献}
+
+\begin{small}
+\begin{itemize}
+\item{[1]} MIT EECS 6.837 Computer Graphics, Particle Systems
+and ODE Solvers II,
+Mass-Spring Modeling
+\item{[2]} Numerical Recipes, 3rd edition 2007 - ch17.5
+\item{[3]} Encyclopedia of Applied and Computational Mathematics
+Full entry, version of 12 August 2011
+Euler methods, explicit, implicit, symplectic
+\item{[4]} BARAFF, D., AND WITKIN, A. 1998. Large steps in cloth simulation. In Proceedings of SIGGRAPH 98, ACM Press / ACM SIGGRAPH, Computer Graphics Proceedings, Annual Conference Series, ACM, 43-54.
+\item{[5]} DESBRUN, M., SCHRÖDER, P., AND BARR, A. 1999. Interactive animation of structured deformable objects. In Graphics Interface, 1-8.
+\item{[6]} VOLINO, P., AND MAGNENAT-THALMANN, N. 2001. Comparing efficiency of integration methods for cloth animation. In Proceedings of the Conference on Computer Graphics International (CGI-01). 
+\item{[7]} Yu, W., KANG, T., AND CHUNG, K. 2000. Drape simulation of woven fabrics by using explicit dynamic analysis. Journal of Textile Institute 91 Part 1, 2, 285-301.
+\item{[8]} J. Shewchuk. An Introduction to the Conjugate Gradient Method Without the Agonizing Pain. Technical Report CMU-CS-TR-94-125, Carnegie Mellon University, 1994.
+\item{[9]} Physically Based Modeling: Principles and Practice (Online Siggraph '97 Course notes)
+\end{itemize}
+\end{small}
 
 \end{document}
 
