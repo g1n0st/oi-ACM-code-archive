@@ -58,7 +58,7 @@
 
 \subsubsection{阻尼力}
 
-考虑到现实中，弹簧在振动过程中会由于摩擦力、空气阻力等损耗振动幅度不断衰减。物理学和工程学上，阻尼的力学模型一般是一个与振动速度大小成正比，与振动速度方向相反的力，即本文采用的线性粘性阻尼模型，可以表示为：
+考虑到现实中，弹簧在振动过程中会由于摩擦力、空气阻力等损耗振动幅度不断衰减。物理学和工程学上，阻尼的力学模型一般是一个与振动速度大小成正比，与振动速度方向相反的力，即本文采用的线性粘性阻尼模型${}^{[4]}$，可以表示为：
 
 \begin{large}
 \begin{equation}
@@ -77,7 +77,7 @@
 
 \subsection{显式求解}
 
-解算弹簧质点模型的关键是牛顿运动定律 $\mathbf{f} = m \ddot{\mathbf{x}}$。将该二阶微分方程改写为两个一阶微分方程：
+解算弹簧质点模型的关键是牛顿运动定律 $\mathbf{f} = m \ddot{\mathbf{x}}$。将该二阶微分方程改写为两个一阶微分方程${}^{[9]}$：
 
 \begin{large}
 \begin{equation}
@@ -103,7 +103,7 @@
 \end{equation}
 \end{large}
 
-下面对欧拉法做局部截断误差（local truncation error）分析，假设 $v(t)$ 光滑，对其泰勒展开得： \par
+下面对欧拉法做局部截断误差（local truncation error）分析${}^{[9]}$，假设 $v(t)$ 光滑，对其泰勒展开得： \par
 
 \begin{large}
 \begin{equation}
@@ -116,7 +116,7 @@
 
 实际仿真过程中，本文利用 \begin{large} $E = \sum_{i} m_ig\mathbf{x}_y + \cfrac{1}{2} m_i \mathbf{v}_{i}^{2} + \cfrac{1}{2} k_s \mathbf{x}_{i}^{2}$ \end{large} 来拟合弹簧质点系统整体的机械能，发现随着迭代次数的增加，系统整体的能量错误的随着时间 $t$ 的增大而不断增大，远达不到预期的准确度，且在阻尼系数 $k_d$ 较小时，误差会过快的累积使得系统爆炸。
 
-显式欧拉法最大的优势是积分表达式简单且易于快速求解，但是其数值精度的误差较大，且具有较大的数值不稳定性，所以只适合较小的积分步长 $h$，其中保持系统稳定的 $h$ 的上界和弹簧的劲度系数 $k_s$ 有关，为 $h \le c \sqrt{\cfrac{m}{k_s}}$，$c$ 为常数且 $c \sim 1$。直观理解来看，弹簧振子的周期为 $\mathbf{T} = 2 \pi \sqrt{\cfrac{m}{k_s}}$，如果不能完整模拟弹簧一个周期或半周期的振荡，其数值积分解就会发散而导致系统爆炸。如果弹簧的劲度过大接近于刚体，$h$ 将限制在一个较小的范围里，相同的计算时长只能模拟的更小的时间跨度，极大地影响了计算效率。 \par
+显式欧拉法最大的优势是积分表达式简单且易于快速求解，但是其数值精度的误差较大，且具有较大的数值不稳定性，所以只适合较小的积分步长 $h$，其中保持系统稳定的 $h$ 的上界和弹簧的劲度系数 $k_s$ 有关 ${}^{[1]}$，为 $h \le c \sqrt{\cfrac{m}{k_s}}$，$c$ 为常数且 $c \sim 1$。直观理解来看，弹簧振子的周期为 $\mathbf{T} = 2 \pi \sqrt{\cfrac{m}{k_s}}$，如果不能完整模拟弹簧一个周期或半周期的振荡，其数值积分解就会发散而导致系统爆炸。如果弹簧的劲度过大接近于刚体，$h$ 将限制在一个较小的范围里，相同的计算时长只能模拟的更小的时间跨度，极大地影响了计算效率。 \par
 
 对显式欧拉法进行简单改进，可以得到半隐式欧拉法（Semi-implicit Euler's Method）。
 
@@ -197,7 +197,7 @@ f(\mathbf{x_0}, \mathbf{v_0} + \frac{h}{2} f(\mathbf{x}_0)) &= f(\mathbf{x_0}, \
 
 \subsubsection{龙格-库塔法（Runge-Kutta Method）}
 
-中点法通过在泰勒展开中多保留一项，将误差项从 $O(h^2)$ 降到了 $O(h^3)$，一般地，如果能在泰勒展开中保留更多项，则可以得到更高阶的误差项，这就是龙格-库塔法（Runge-Kutta Method）的思想，特殊地，中点法是二阶 Runge-Kutta 积分。工业和仿真中一般广泛采用的是四阶 Runge-Kutta 积分，其误差项为 $O(h^5)$：
+中点法通过在泰勒展开中多保留一项，将误差项从 $O(h^2)$ 降到了 $O(h^3)$，一般地，如果能在泰勒展开中保留更多项，则可以得到更高阶的误差项，这就是龙格-库塔法（Runge-Kutta Method）的思想${}^{[9]}$，特殊地，中点法是二阶 Runge-Kutta 积分。工业和仿真中一般广泛采用的是四阶 Runge-Kutta 积分，其误差项为 $O(h^5)$：
 
 \begin{large}
 \begin{equation}
@@ -234,7 +234,7 @@ f(\mathbf{x_0}, \mathbf{v_0} + \frac{h}{2} f(\mathbf{x}_0)) &= f(\mathbf{x_0}, \
 \end{equation}
 \end{large}
 
-将 $ \mathbf{f}^{t+h}$ 一阶泰勒展开 \begin{large} $ \mathbf{f}^{t+h} =  \mathbf{f}^{t} + \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \Delta \mathbf{x} + \cfrac{\partial \mathbf{f}}{\partial \mathbf{v}} \Delta \mathbf{v}$\end{large}，代入式 $(15)$ 得到：
+将 $ \mathbf{f}^{t+h}$ 一阶泰勒展开 \begin{large} $ \mathbf{f}^{t+h} =  \mathbf{f}^{t} + \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \Delta \mathbf{x} + \cfrac{\partial \mathbf{f}}{\partial \mathbf{v}} \Delta \mathbf{v}$\end{large}，代入式 $(15)$ 得到${}^{[2]}$：
 
 \begin{large}
 \begin{equation}
@@ -292,7 +292,7 @@ $\hat{\mathbf{x}} = \cfrac{\mathbf{x}}{\lvert \mathbf{x} \rvert}$，单位向量
 \end{equation}
 \end{large}
 
-令 \begin{large}$ \mathbf{A} = \left ( \mathbf{M} - h \cfrac{\partial \mathbf{f}}{\partial \mathbf{v}} - h^2 \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \right ) $\end{large}, \begin{large} $\mathbf{b} = h \left ( \mathbf{f}^{t} + h \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \mathbf{v}^t \right )$ \end{large}，则问题转化为求线性方程组 \begin{large} $\mathbf{Ax = b}$ \end{large}。一个直观的想法是对 $\mathbf{A}$ 取逆，答案就是 $\mathbf{A^-1b}$，然而，在仿真过程中，矩阵求逆是一个昂贵的操作，时间复杂度可以达到 $O(n^3)$（非并行条件下），其中 $n$ 为矩阵的阶数。此外，原问题中，由于并不是每对质点之间都有弹簧相连，\begin{large} $ \mathbf{M} $ \end{large}，\begin{large} $\cfrac{\partial \mathbf{f}}{\partial \mathbf{v}}$ \end{large} 和 \begin{large} $\cfrac{\partial \mathbf{f}}{\partial \mathbf{v}}$ \end{large} 都是稀疏矩阵，其线性运算后的结果 $\mathbf{A}$也是稀疏矩阵，故而所需的存储空间仅和矩阵中非零元的个数相关，远小于 $O(n^2)$，可以用稀疏数据结构存储，反之矩阵求逆之后，稀疏性被破坏，非零元的个数达到 $O(n^2)$，无法直接储存。本文通过实际代码仿真测试，在质点数量达到 $10^2$ 级别时，就无法进行实时的仿真。总结来说，直接求逆操作对计算时间和计算空间都提出了极高的要求，在仿真中较为不实用。 \par
+令 \begin{large}$ \mathbf{A} = \left ( \mathbf{M} - h \cfrac{\partial \mathbf{f}}{\partial \mathbf{v}} - h^2 \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \right ) $\end{large}, \begin{large} $\mathbf{b} = h \left ( \mathbf{f}^{t} + h \cfrac{\partial \mathbf{f}}{\partial \mathbf{x}} \mathbf{v}^t \right )$ \end{large}，则问题转化为求线性方程组 \begin{large} $\mathbf{Ax = b}$ \end{large}。一个直观的想法是对 $\mathbf{A}$ 取逆，答案就是 $\mathbf{A^-1b}$，然而，在仿真过程中，矩阵求逆是一个昂贵的操作${}^{[4]}$，时间复杂度可以达到 $O(n^3)$（非并行条件下），其中 $n$ 为矩阵的阶数。此外，原问题中，由于并不是每对质点之间都有弹簧相连，\begin{large} $ \mathbf{M} $ \end{large}，\begin{large} $\cfrac{\partial \mathbf{f}}{\partial \mathbf{v}}$ \end{large} 和 \begin{large} $\cfrac{\partial \mathbf{f}}{\partial \mathbf{v}}$ \end{large} 都是稀疏矩阵，其线性运算后的结果 $\mathbf{A}$也是稀疏矩阵，故而所需的存储空间仅和矩阵中非零元的个数相关，远小于 $O(n^2)$，可以用稀疏数据结构存储，反之矩阵求逆之后，稀疏性被破坏，非零元的个数达到 $O(n^2)$，无法直接储存。本文通过实际代码仿真测试，在质点数量达到 $10^2$ 级别时，就无法进行实时的仿真。总结来说，直接求逆操作对计算时间和计算空间都提出了极高的要求，在仿真中较为不实用。 \par
 
 然而，解线性方程组 \begin{large} $\mathbf{Ax = b}$ \end{large} 是一个已知且存在普遍方法的问题，本文采用了以下几种方法求解。
 
@@ -333,7 +333,7 @@ e_{(i+1)} &= Be_{(i)}
 \end{equation}
 \end{large}
 
-由式 $(23)$ 可知，每次迭代后 $x$ 的部分不会改变（因为其是迭代式的不动点），但是误差项会每次累乘 $B$，如果 $B$ 的谱半径 $\rho (B) < 1$，那么 $i$ 趋向无穷大时误差项就会趋向于 $0$，此时初始向量 $x_{(0)}$ 的选择并不影响最终的收敛结果。由于仿真过程在时间维度上连续且每次的步长较小，所以本文选择将上次迭代的最终结果作为下一次迭代的初始值。更一般的，若 $B$ 的谱半径 $\rho (B) = \lvert \lambda_{j} \rvert > 1$，且 $v_j$ 为对应的特征向量，则将误差项视为特征向量的线性组合的话，$v_j$ 方向将在迭代中收敛的最慢。
+由式 $(23)$ 可知，每次迭代后 $x$ 的部分不会改变（因为其是迭代式的不动点），但是误差项会每次累乘 $B$，如果 $B$ 的谱半径 $\rho (B) < 1$，那么 $i$ 趋向无穷大时误差项就会趋向于 $0$，此时初始向量 $x_{(0)}$ 的选择并不影响最终的收敛结果。${}^{[8]}$由于仿真过程在时间维度上连续且每次的步长较小，所以本文选择将上次迭代的最终结果作为下一次迭代的初始值。更一般的，若 $B$ 的谱半径 $\rho (B) = \lvert \lambda_{j} \rvert > 1$，且 $v_j$ 为对应的特征向量，则将误差项视为特征向量的线性组合的话，$v_j$ 方向将在迭代中收敛的最慢。
 
 \subsubsection {高斯-赛德尔迭代法（Gauss-Seidel Iterative Method）}
 
