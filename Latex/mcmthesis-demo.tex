@@ -1,0 +1,413 @@
+\documentclass{mcmthesis}
+\mcmsetup{CTeX = false,
+        tcn = H386, problem = B,
+        sheet = true, titleinsheet = true, keywordsinsheet = true,
+        titlepage = true, abstract = true}
+\usepackage{palatino}
+\usepackage{lipsum}
+\usepackage{float}
+\usepackage{color}
+\usepackage{algorithm}  
+\usepackage{algpseudocode}  
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{verbatim}
+\usepackage{titlesec}
+\usepackage{titletoc}
+
+\title{  USVs clusters cooperate confrontation strategies analysis}
+\author{\small \href{http://www.latexstudio.net/}
+  {Chang Yu, \space \space \space \space \space  Siyu Ma,\space  \space  \space  \space  \space Shengzhe Wang}}
+\date{\today}
+\begin{document}
+\begin{abstract}
+With the development of artificial intelligence technology and independent technology, the collaborative perception, planning, and coordination of unmanned swarm in a dynamic confrontation environment are dramatically developing. In this paper, we propose three novel confrontation models discussed and employed in three different contexts. \\
+First, we propose a strategy model for verifying Question I. After simplifying the original problem and establishing assumptions, we employ a hypothetical chasing strategy for the Red USVs, meanwhile, consider the Blue USV's strategy from cost time and minimum distance maximize optimization aspects simultaneously. We prove that no matter what kind of pursuit strategy the Red USVs adopts, the Blue UAV can always realize the successful penetration. \\
+Secondly, We analyze the existence of $M_{min}$ and $M_{max}$ for Question II, then based on the discussion of M, assigning corresponding time-optimal interception and penetration strategies to red and blue parties. First, we remodel the Red USVs using a constrained particle swarm algorithm, which uses heuristic algorithms to optimize strategies for the Red USV clusters. Next, we use the convolutional neural network (CNN) to predict the Red USV clusters flight trajectory, and propose corresponding countermeasures for the Blue USV under different conditions. \\
+And then, in the Question III scenario, we continue to apply the strategy model based on the Question II hypothesis, and on this basis, we further analyze the advantages of the Blue USV bringing by maneuvering seduction strategy, extract several key points on its moving path for the Red USV Carrier to determine how to release USV clusters. \\
+Finally, we use Matlab and Python/Taichi codes to verify our models as well as visualize the confrontation result both in real-time and in visualizing the confrontation result both in real-time and the chart. \\
+We deduce our conclusions in the end, summarize our strengths and weaknesses.
+\begin{keywords}
+USV cluster, cluster collaborative control, multi-agent system, swarm intelligence
+\end{keywords}
+\end{abstract}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+\subsection{Background}
+To Reduce dependence on land-based,sea-based, and air-based platforms, more and more countries develop drones as a key force in the third offset strategy. With the rapid development of drone technology and artificial intelligence, drone cluster collaboration technology based on swarm intelligence has gradually become a hot application field for development. The shortcomings of a single USV with limited load capacity, lightweight load, and insufficient low-power equipment are difficult to support its independent completion of tasks, making USV cluster collaboration a hot spot for the development of future intelligent warfare. The combination of the advantages of small load, low cost, and a large number of USVs and the advantages of rapid communication and information sharing within the USV cluster can significantly improve the situational awareness and task execution capabilities of the combat team. It has pRedominant survival abilities, flexibility, and environmental adaptability than humans. In the military field, drone cluster technology plays an irreplaceable role in intercepting missile, electromagnetic interference, intelligence reconnaissance, and so on.\\
+Judging from the military conflicts in recent years, air defense is facing a more new and complex threat. Among them, the usage of artificial intelligence, integrated, group control, data fusion, collaborative interaction, and other technologies have enabled manifold small-scale, low-cost drone swarms (cluster) combat becomes possible, provides options for more strategic battles and tactics for confrontation at all levels, and brings great Subversion and challenges to traditional offensive and air defense styles.\\
+Based on the fact that the future combat subject changes from a single USV to USV cluster coordination, the original single human-machine combat systems, combat methods, and individual intelligence algorithms will be no longer applicable, we present a swarm intelligence-based USV cluster collaborative confrontation as a possible solution.
+
+
+\section{Notations}
+
+In this section we list all the notations used in our work, most have already been defined in the problem statement, and we define the remain numerical values. See Table.1 for details.
+
+
+% \newgeometry{left = 1.5 cm}
+\begin{table} [H]
+\small
+\centering
+\caption {Notation}
+\begin{tabular}{|llll|}
+\hline
+Notation                       & Defination                                   & Unit & Value   \\ \hline
+L                              & Distance between BC(Attack Depth)            & km   & 10      \\
+M                              & Distance between channels(i.e. bandwidth) AB & km   &  /       \\
+$\mathbf{V}_{B}$               & Speed of the Blue USV                        & m/s  & 25      \\ 
+$R_{E}$      		   & Minimum turning radius of Blue USV           & m    &100\\
+$\mathbf{V}_{P}$      		   & Speed of the Red USV                        & m/s    &20\\
+$\mathbf{P} $      		   & Position of USV or USV Carrier                       & m/s    &/\\
+$R_{P}$      				   & Minimum turning radius of Red USV           & m    &80\\
+$D_{min}$      				           & Minimum distance between Blue's USV and at least 2 Red side's USVs          & m    &100\\
+$T_{max}$      				   & Maximum time of Blue side USV crosses boundary CD     &s    &700\\
+$D_{rr}$      				   & Minimum distance between any two Red's USVs    &m   &30\\
+$D_{rc}$      				   & Maximum distance between Red USV carrier and at least 1 USVs in a cluster      &km    &2\\
+$D_{r2r}$      				   & Maximum distance between each Red USV and at least 2 USVs in a cluster      &m    &100\\
+$D_{rb}$                       &Minimun distance from Blue's penetration USV     &km   & 1\\
+$T_{max}$      				   & Maximum time of Blue side USV crosses boundary CD     &s    &700\\
+$\mathbf{V}_{C}$      				   & Minimum speed of the Red USV's Carriers          & m/s    &16\\
+$R_{C}$      				   & Minimum turning radius of Red USV's Carriers            & m    &500\\ \hline
+\end{tabular}
+\end{table}
+% \restoregeometry
+
+\section{The Models}
+
+\subsection{Model I}
+
+\subsubsection{Overview}
+In the first model, our target is to identify any location inside in the $(L, M)$ rectangle is all available for Blue USV to penetratee within 700s, which is identical to prove that there at least exists an optimization strategy for the Blue USV that could even handle the worst initial position in the given constraints. It's necessary to point out that compares to the other models we will discuss in the later sections, the prerequisite of the first model is more restrictive thus we could do more extra specific assumptions and simplifications. We will use this model to solve the first question in the following steps. First, we restate the question in mathematic formulas. Second, based on the inference, we propose a hypothetical Red USVs' strategy that way stronger than any feasible strategies. Finally, we prove that even in this situation, the corresponding strategy for Blue USV we made is still advantageous to help Blue USV to avoid interception in any case, to achieve this, in this model we transform the original problem into two different optimization problems, prove the validity of our conclusion separately.
+
+\subsubsection{Mathematical analysis}
+The problem domain is two dimensions, thus we use the Cartesian coordinate system to describe the positions of USVs. In the initial state, $\mathbf{P}(0)_{C_1}=(L, 2)$ is the location of one of the Red USV carrier, $\mathbf{P}_{C_2}(0)=(L, 5)$ is the location of another. The location of Blue USVs is $\mathbf{P}(0)_{E}=(X_E, Y_E)$, where we will discuss the selection of $X_E$ and $Y_E$ later. Symbol $\mathbf{P}(t)$ means position vector at time $t$. \par
+To achieve the integration of position, we use the finite difference method to discretize time and integral $\mathbf{P}(t)$ using a semi-implicit integrator, i.e.
+
+\begin{equation}
+\mathbf{P}(t_{n+1})=\mathbf{P}(t_{n})+\mathbf{V}(t_{n+1})
+\end{equation}
+
+where $t_0$, $t_1$, ..., $t_n$ are the discretized time steps, $t_n = t_{n-1} + \mathbf{dt}, t_{0}=0$. $\mathbf{V}(t_{n})=v \cdot \mathbf{d}(t_{n})$, where $v$ is the constant velocity depends on different type of USV, $\mathbf{d}(t_{n})$ is the normalized direction vector, which is key discussion object. \par
+
+In addition to having constant speed limits, the USVs also need to take turning radius restrictions into account. Given a minimum turning radius $r$, the position change with the largest curvature is a circular motion with radius $r$, in this case, the maximum angle change rate could derive from the following equation:
+
+\begin{equation}
+\mathbf{d \theta} = \frac{v}{2 \pi r} \cdot 2 \pi \mathbf{dt} \
+= \frac{v}{r} \mathbf{dt}
+\end{equation}
+
+Thus, we can transform the minimum turning radius into constraint:
+
+\begin{equation}
+cos^{-1}(\mathbf{d}(t_{n}) \cdot \mathbf{d}(t_{n+1})) \le \mathbf{d \theta} = \frac{v}{r} \mathbf{dt}
+\end{equation}
+
+If the above condition is not met, we need to modify the latest direction to meet the constraints, i.e.
+
+\begin{equation}
+\mathbf{d}^{'}(t_{n+1}) =\left\{
+\begin{array}{rcl}
+\mathbf{d}(t_{n+1}) & & {cos^{-1}(\mathbf{d}(t_{n}) \cdot \mathbf{d}(t_{n+1})) \le \mathbf{d \theta}} \\
+\mathbf{M}(+\mathbf{d \theta}) \mathbf{d}(t_{n}) & & {cos^{-1}(\mathbf{d}(t_{n}) \cdot \mathbf{d}(t_{n+1})) > \mathbf{d \theta}, \mathbf{d}(t_{n}) \times \mathbf{d}(t_{n+1})}>0 \\
+\mathbf{M}(-\mathbf{d \theta}) \mathbf{d}(t_{n}) & & {cos^{-1}(\mathbf{d}(t_{n}) \cdot \mathbf{d}(t_{n+1})) > \mathbf{d \theta}, \mathbf{d}(t_{n}) \times \mathbf{d}(t_{n+1})}<0
+\end{array} \right.
+\end{equation}
+
+where $\mathbf{M}(\theta)$ is the rotate matrix:
+
+\begin{equation}
+\left[
+ \begin{matrix}
+   cos(\theta) & -sin(\theta) \\
+   sin(\theta) & cos(\theta)
+  \end{matrix}
+  \right] \tag{3}
+\end{equation}
+
+And the cross-product $\mathbf{d}(t_{n}) \times \mathbf{d}(t_{n+1})$ judges $\mathbf{d}(t_{n+1})$ is whether on the left or right hand side of $\mathbf{d}(t_{n+1})$.
+
+$D_{rb}$, $D_{r2r}$ and so forth can be represented as constraints within the Euclidean metric between USVs, it's something trivial that we skip the discussion for them.
+
+\subsubsection{Red part strategy}
+In the original problem, numerous constraints limit the movement of Red USVs. In this sub-section, we discuss to release all the constraints thus to propose a strengthened Red USVs' strategy, which use to prove question I in a strengthened condition. \par
+
+As the problem said, the distance between the Red USVs Carrier and at least one UAV in the UAVs cluster is not more than $D_{rc}$=2km, meanwhile the speed of the Red USVs Carrier is not more than $V_C$=16m/s and the turning radius is not less than $R_{C}$=500m. It turns out that whether the speed or the minimum turning radius, the Red USV carrier restricts the free movement of the Red SUVs on account of both distance and Red-USV-Carrier-own-property constraints, which means if we abandon these constraints, the Red USVs will get more degree of freedom. \par
+
+What's more, the distance between any two UAVs on the Red side should be greater than $D_{rr}$=30m as well as the distance between each UAV and at least two UAVs in this cluster is not greater than $D_{r2r}$=100m. These are two other constraints. After we ignored them, the variable $\mathbf{d_{Red}}(t_{n})$ owns it totally degree of freedom except the self minimum turning radius constraint described by equation(4). \par
+
+In this context, the strategy is obvious. The only variable is the direction and without prior knowledge, the Red USVs could only determine the current position of the Blue USV or estimate the next position based on the current velocity, i.e.
+
+\begin{equation}
+\mathbf{d_{Red}}(t_{n+1}) = \frac{\mathbf{P_{Blue}}(t_{n/n+1}) - \mathbf{P_{red}}(t_{n})}{\lvert \lvert \mathbf{P_{Blue}}(t_{n/n+1}) - \mathbf{P_{red}}(t_{n}) \lvert \lvert}
+\end{equation}
+
+In practice, we test both $\mathbf{P_{Blue}}(t_{n})$ and $\mathbf{P_{Blue}}(t_{n+1})$ based on velocity estimation.
+
+\subsubsection{Blue part strategy}
+
+$X_E$ and $Y_E$ provide two independent variables to determine whether an initial state could penetrate finally or not. To discuss the worst situation, the two could consider them separately. \par
+
+Firstly, to meet the worst requirement, $X_E$ is demanded to be as small as possible, thus we apply $X_E$=0. \par
+
+Furthermore, considering the $Y_E$, given the precondition that $R_E > R_P$, i.e. the Blue USV has more movement constraint than the Red USVs regardless of the velocity difference. If the Blue USV moves from $\mathbf{P_A}$ to $\mathbf{P_B}$ is a curve, it must give the Red USVs more extra times to get closer. Hence the whole movement of the Blue USVs must be a line. \par
+
+If two Red USV both applied the strategy in the previous sub-section, a factor $\sigma$ that positively correlates to the minimum distance between the Red and the Blue USVs during the whole chasing period $dist_{min}$ is the minimum distance between the blue USV straight movement line and the two red USV initial positions perpendiculars, i.e.
+
+\begin{equation}
+\sigma = \mathbf{min}(\lvert \lvert \mathbf{P}_{Blue}(n) - \mathbf{P}_{Red_1}(0) \lvert \lvert, \lvert \lvert \mathbf{P}_{Blue}(n) - \mathbf{P}_{Red_2}(0) \lvert \lvert)
+\end{equation}
+
+One optimization target is to maximize the $dist_{min}$, which is equal to maximum $\sigma$, thus the Blue part strategy is to go straight towards the nearest diagonal point, under this strategy, $\sigma$ is a function of dependent variable $Y_E$, i.e.
+
+\begin{equation}
+\sigma=f(Y_E)=\left\{
+\begin{array}{rcl}
+\frac{2L}{\sqrt{L^2+E_Y^2}} & & {0 \leq E_Y \leq \frac{M}{2}}\\
+\frac{2L}{\sqrt{L^2+(M-E_Y)^2}} & & {\frac{M}{2} < E_Y \leq M }
+\end{array} \right.
+\end{equation}
+
+It turns out that to meet the worst requirement, $Y_E$ is equivalent to $\frac{M}{2}=\frac{7}{2}$km.
+
+Another optimization target is the time used to penetrate, the corresponding strategy is to move straight and parallel to the y-axis, our experiment shows that when $(E_X, E_Y) = (\frac{7}{2}, 0)$, it's available for the Blue USV to penetrate.
+
+Combine all previous assumptions and analyses into our Model I, we can conclude that no matter what strategy the Red USVs applied or where the initial position the Blue USVs start, we can propose a descriptive strategy for the Blue USV to tackle with. To optimize the cost time, the best penetration strategy is to go horizontal and straight. See more experiment results in the next section.
+
+\subsection{Model II}
+\subsubsection{Overview}
+The first model we proposed it's suitable to solve question I, nevertheless, for question II, we need to do quantitative analysis rather than qualitative, where we could not inherit the simplification and the assumption we applied in Model I. Thus we proposed our Model II. While it succeeds in most mathematical formalization, it appropriately takes the significant impact of the constraints of the Red USV carriers and the coactions based on the USVs cluster into consideration and makes up two groups of brand new strategies for the Red and Blue USVs. \par
+
+Our target is to analyze the existence of the $M_{min}$ and the $M_{max}$, then based on the discussion of M, assigning corresponding time-optimal interception and penetration strategies to red and blue parties. First, we remodel the Red USVs using a constrained particle swarm algorithm, which uses heuristics to optimize strategies for the cluster. Next, we use the convolutional neural network (CNN) to predict the Red USV clusters flight trajectory, and propose corresponding countermeasures for the Blue USV under different conditions. Finally, we let the two parties emulate in different $M$ context and get the result.
+
+\subsubsection{Red part strategy}
+	Particle Swarm Optimization, i.e PSO. Each particle in the particle swarm represents a possible solution to a problem. Through the simple behavior of individual particles and the interaction of information within the swarm,  to realize the intelligence of problem-solving. \par
+	There are two Red USVs groups in the square, each one at the midpoint of the two halves. That's to allow the red UAV to have a more balanced and rapid response time compared to other points during the interception process in their respective half. Even in the case of Blue USV flying along the middle, this approach is better for the interception.\par
+	The two Red USVs groups are regarded as two-particle swarms, and the particle swarm algorithm is adopted for each particle swarm. The algorithm influences the overall optimal solution through the individual optimal solution and revises the individual optimal solution through the overall optimal solution. The goal here is to intercept the Blue USV. Red USVs only need to make the closest flight towards the target during the flight. The updating formula of the particle swarm optimization algorithm is as follows:
+
+\begin{align}
+\mathbf{V}_i^{k+1} & =\omega \mathbf{V}_i^k + c_1 r_{i1}^k (\mathbf{P}_i^k - \mathbf{X}_i^k) + c_2 r_{i2}^k (\mathbf{P}_g^k - \mathbf{X}_i^k) \\
+\mathbf{X}_i^{k+1} & = \mathbf{X}_i^k + \mathbf{V}_i^{k+1} * dt
+\end{align}
+
+	$\mathbf{V}_i^k$ : Represents the speed of the i-th particle and the k-th iteration \par
+    $\mathbf{P}_i^k$ : The optimal goal of the i-th particle until the k-th iteration \par
+	$\mathbf{P}_g^k$ : The optimal target was obtained among all particles of the k-th iteration \par
+	$\mathbf{X}_i^k$ : The solution of all particles of the k-th iteration \par
+	$\omega$, $c_1$, $c_2$ : Constant \par
+	$r_{i1}^k$, $r_{i2}^k$ : Random numbers with normal distribution values, the range is [0,1] \par
+	
+	In this model, the speed of the Red USVs is fixed. And the Red USV is restrained by the Red USVs Carrier. Therefore, we need to change the value of speed after each calculation to Vp. Additionally, when updating the objective function, the position of the  Red USVs Carrier needs to be taken into consideration. And make it have less influence on the objective function than other factors. The constant w is called the inertia factor. A larger inertia factor is conducive to jumping out of the local minimum and facilitating global search, while a smaller inertia factor is conducive to the accurate local search of the current search area to facilitate algorithm convergence. The red UAV needs to perform a global search in the early stage and a precise local search in the later stage. Therefore, we can use a nonlinear dynamic inertia weight coefficient formula to reduce the inertia weight $\omega$ linearly from the maximum value $\omega_{max}$ to the minimum value $\omega_{min}$. The iterative equation is:
+
+\begin{align}
+\mathbf{V}_i^{k+1} & =\omega \mathbf{V}_i^k + c_1 r_{i1}^k (\mathbf{P}_i^k - \mathbf{X}_i^k) + c_2 r_{i2}^k (\mathbf{P}_g^k - \mathbf{X}_i^k) + 0.3 c_3 r_{i3}^k (\mathbf{P}_c^k - \mathbf{X}_i^k) \\
+\mathbf{V}_i^{k+1} & = \mathbf{V}_i^{k+1} \cfrac {|\mathbf{V}_p|}{|\mathbf{V}_i^{k+1}|} \\
+\mathbf{X}_i^{k+1} & = \mathbf{X}_i^k + \mathbf{V}_i^{k+1} * dt \\
+\omega & =\left\{
+\begin{array}{rcl}
+& \omega_{min} - \frac{(\omega_{max} - \omega_{min}) * (f-f_{min})}{f_{avg} - f_{min}}& f\leqslant f_{avg} \\
+& \omega_{max} & f > f_{avg}
+\end{array} \right.
+\end{align}
+
+    $\mathbf{P}_c^k$ : The position of the Red USVs carrier until the k-th iteration \par
+	$\omega_{max}$ : The maximum value of $\omega$ \par
+	$\omega_{min}$ : The minimum value of $\omega$ \par
+	$f$ : The current objective function value of the Red USV, the distance to Blue SUV \par
+	$f_{avg}$ : The average function value of all current Red USVs \par
+	$f_{min}$ : The minimum function value of all Red USVs \par
+
+	Besides, taking into account the distance and corner of Red SUVs and so on, constraints are also needed during the iteration. Marking them as $L(x)$ :
+
+\begin{align}
+& 0.03 \leqslant distance(\mathbf{X}_i^k - \mathbf{X}_j^k)\leqslant 0.1 \\
+& \mathbf{X}_i^k \cdot \mathbf{X}_i^{k+1} \leqslant \cos (d\theta) \\
+& \exists distance(\mathbf{X}_i^k - \mathbf{P}_c^k) \leqslant 2
+\end{align}
+
+	The PSO does not involve solving optimization problems with constraints. So we can use the Lagrange Multiplier Method to add constrained penalties to the objective function :
+
+\begin{align}
+F(x) &= f(x) + h(k)H(k) \\
+h(k) &= \sqrt{k} \\
+H(x) &= \sum_{i=1}^n \alpha (q_i(x))q_i(x_i)^{\gamma (q_i(x_i))}
+\end{align}
+
+	$F(x)$ : The new objective function \par
+	$h(x)$ : The penalty coefficient for the dynamic update, related to the number of iterations \par
+	$H(x)$ : The constraint penalty term \par
+	$q_i(x)$ : The relative constraint penalty function \par
+	$\alpha (q_i(x))$ : The piecewise assignment function \par
+	$\gamma q_i(x)$ : The punishment index \par
+	According to the question conditions, set each function as follows :
+
+\begin{align}
+q_i(x) &= \mathbf{min}(0, L_i(x)) \\
+\alpha(q_i(x)) &=\left\{
+\begin{array}{rcl}
+& 1       &q_i(x)<0.1 \\
+& 2       &others \\
+\end{array} \right. \\
+\alpha(q_i(x)) &=\left\{
+\begin{array}{rcl}
+& 10       &q_i(x)<0.001 \\
+& 50       &0.001\leqslant q_i(x) < 0.01 \\
+& 100      &0.01\leqslant q_i(x) < 0.1 \\
+& 500      &others \\
+\end{array} \right. 
+\end{align}
+
+\subsubsection{Blue part strategy}
+
+First, we prove the existence of the lower limit of $M_min$ of channel bandwidth $M$ is existent. It's obvious that when $M$ approaches $0$, the Blue USV will gradually be restricted to flying horizontally and straight, which means that the Blue USV's maneuverability will get worse and worse. Under the condition of flying in opposite directions, it will not have enough ability to avoid chasing, so it will definitely be intercepted in the end. A more quantitative discussion based on the Blue ultimate strategy will be given later. Now, we propose a method of predicting the actions of the red party using a convolutional neural network. Based on the historical moving path, it feeds back the prediction of the overall direction of the red cluster as a black box: \par
+
+\begin{equation}
+\mbox{direction estmation} = \mathbf{CNN}({\mbox{historical paths}})
+\end{equation}
+
+A convolutional neural network, i.e. CNN, is a kind of feedforward neural network with convolution calculation and deep structure. CNN has the ability of representation learning and can classify input information according to its hierarchical structure. The convolution kernel parameter sharing in the hidden layer and the sparsity of the connections between the layers enable the convolutional neural network to perform grid-like topology features with a small amount of calculation. \par
+
+In the previous formula, we discretize the continuum time into a $\mathbf{dt}$-spaced sequence, i.e. $t_1$, $t_2$, ..., $t_n$.  Use these time steps as dependent variable, we could induce sequences $\mathbf{P_{k}}(t_0)$, $\mathbf{P_{k}}(t_1)$, ..., $\mathbf{P_{k}}(t_n)$ and $\mathbf{d_{k}}(t_0)$, $\mathbf{d_{k}}(t_1)$, ..., $\mathbf{d_{k}}(t_n)$  as the input of our CNN model, where $\mathbf{P_{k}}(t_n)$ and $\mathbf{d_{k}}(t_n)$ are the position and direction vectors at the discretized time $t_n$ of the label number $k$ USV, $k=0$ represents the Blue USV, $k = 1, 2$ represents the Red USV Carriers, $k=3,...,12$ represents the Red USVs. Consequently, the input is a $26 \times (n+1)$ Matrix:
+
+\begin{equation}
+\mathbf{M_{in}} = 
+  \begin{pmatrix}
+  \mathbf{P_{0}}(t_0) & \mathbf{d_{0}}(t_0) & \cdots & \mathbf{P_{25}}(t_0) & \mathbf{d_{25}}(t_0)\\
+  \mathbf{P_{0}}(t_1) & \mathbf{d_{0}}(t_1) & \cdots & \mathbf{P_{25}}(t_1) & \mathbf{d_{25}}(t_1) \\
+  \vdots & \ddots & \vdots \\  
+  \mathbf{P_{0}}(t_n) & \mathbf{d_{0}}(t_n) & \cdots & \mathbf{P_{25}}(t_n) & \mathbf{d_{25}}(t_n)  \\
+  \end{pmatrix}
+\end{equation}
+
+And the output of our CNN model is a Matrix whic contains two vectors estimating the direction of next movement of the two Red USV clusters:
+
+\begin{equation}
+\mathbf{M_{out}} = [\mathbf{d_{1}}(t_{n+1}) \vert \mathbf{d_{2}}(t_{n+1})] = 
+  \begin{bmatrix}
+  d_1x & d_2x\\
+  d_1y & d_2y  \\
+  \end{bmatrix}
+\end{equation}
+
+The reason why we used CNN is that makes full use of the characteristics of the input data. The key structure of the CNN is the pooling and convolutional layer, which use downsampling to reduce the dimensionality of features and retain effective information to avoid overfitting to a certain extent. Considering the $\mathbf{dt}$-spaced sequence $\mathbf{P}(t_0)$, $\mathbf{P}(t_1)$, ..., $\mathbf{P}(t_n)$, if we applied the downsampling and reduce the sequence into half, i.e. $\mathbf{P}^{'}(t_0)$, $\mathbf{P}^{'}(t_1)$, ..., $\mathbf{P}^{'}(\frac{t_n}{2})$, the result is the $\mathbf{2dt}$-spaced sequence. It turns out that each layer in the CNN is a discretization formation of the original continuum problem. The consistency of the problem will not be destroyed, and the nature of the data can be discovered from different fitting accuracy.
+
+\begin{figure}[h]
+\small
+\centering
+\includegraphics[width=16cm]{Figure_CNN.png}
+\caption{Layer Structure of CNN} \label{fig:Layer Structure of CNN}
+\end{figure}
+
+The layer structure of our CNN model shows in Figure. 1. Given the input matrix $\mathbf{M}$, we restrict n+1=100. Firstly, we apply 10x26x50 convolution kernel in layer 1, and layer 2 is the max-pooling layer with 1x2 kernel. Similarly, 10x26x5 convolution kernel is used in layer 3 and the following layer is the max-pooling layer with 1x4 kernel. Note that in these CNN layers, we maintain the column width unchanged. Next, we flatten all nodes, add a 500-nodes fully connected layer 5, and connect it to the output layer. In practice, we use ReLU activate functions in the previous layers and sigmoid function in the output layer. \par
+
+Under the proposed Red USV strategy, we could get the corresponding Red USV clusters route under different Blue USV flight routes to get a lot of data to train our model. Through tuning and training, we finally got a practical analyzer that can stably predict the path of the Red USV clusters. \par
+
+\paragraph{strategy I}
+
+To optimize the time variable for penetration, if possible, it's obvious that we first consider move horizontal, which $t=\frac{M}{\mathbf{V}_{B}}$ is the global optimal solution. The disscussion reduces to the Model I condition. The feasibility of this strategy is simultaneously affected by $M$ and relative y-axis phase difference between two Red USV carriers and the Blue USV, i.e. 
+\begin{equation}
+\mathbf{min}(\mathbf{G_1}_y - \frac{M}{2}, \mathbf{G_2}_y - \frac{M}{2})
+\end{equation}
+
+However, in most cases especially when the Red USVs' strategy is optimal, this strategy is not available. Thus we turn to consult other strategies. Specifically, when the equation above is unsatisfied but $M$ is not so restrictive, we apply the following strategy.
+
+\paragraph{strategy II}
+
+It's certain that if we want to optimize the cost time between $\mathbf{P}_A$ and $\mathbf{P}_B$, we move straight from A to B, i.e. $\mathbf{d}(t)=\frac{\mathbf{P}_A \mathbf{P}_B}{\vert \vert \mathbf{P}_A \mathbf{P}_B \vert \vert}$. Globally, for a certain destination $\mathbf{P_D}$ on the boundary of $\mathbf{CD}$, if this local strategy is feasible everywhere, we set the direction vector to a constant:
+
+\begin{equation}
+\mathbf{d}(t_m)=\frac{\mathbf{P}_B \mathbf{P}_D}{\vert \vert \mathbf{P}_B \mathbf{P}_D \vert \vert} \quad ,m = 0, 1, 2, ..., n
+\end{equation}
+
+In our strategy, the destinate will change during the movement that we later discuss.
+
+\section{Test Model}
+\subsection{Model I}
+\begin{figure}[h]
+\small
+\centering
+\includegraphics[width=16cm]{Figure_1.png}
+\includegraphics[width=16cm]{Figure_2.png}
+\caption{Model I result} \label{fig:Model I result}
+\end{figure}
+
+\begin{thebibliography}{99}
+\bibitem L. Merino, F. Caballero, JR. Martínez-de-Dios, et al. An Unmanned Aircraft System for
+Automatic Forest Fire Monitoring and Measurement [J]. Journal of Intelligent \& Robotic
+Systems, 65(1-4): 533-548.
+\bibitem Y. Xu, P. Scerri, B. Yu. An integrated token-based algorithm for scalable coordination[C].
+4th International Joint Conference on Autonomous Agents and Multi-agent Systems, Utrecht,
+The Netherlands, July 25-29, 2005.
+\bibitem UCAV Research and Technology Development-A USAF Perspective[R]. Defense IQ`s 7th
+Annual UCAV Conference, London, 2007.
+\bibitem CL. Johnson. Inverting the Control Ratio: Human Control of Large Autonomous Teams
+[C]. Proceedings of the International Conference on Autonomous Agents and Multi-agent
+Systems, Melbourne, Australia, 2003.
+\bibitem D. Weatherington. Unmanned Aircraft Systems Roadmap, 2005-2030 [R]. Deputy, UAV
+Planning Task Force, OUSD (AT\&L), Washington DC, USA, 2005, 3-6.
+\bibitem A. Ryan, M. Zennaro, A. Howell, et al. An overview of emerging results in cooperative
+UAV control [C]. Proceedings of the IEEE Conference on Decision and Control, 2004, 602-
+607.
+\bibitem S. Butenko, R. Murphey, P Pardalos. Cooperative Control: Models, Applications and
+Algorithms[M]. Kluwer Press, 2006, 96-111.
+\bibitem A Ollero, S Lacroix, L Merino, et al. Multiple Eyes in the Skies, Architecture and
+Perception Issues in the COMETS Unmanned Air Vehicles Project[J]. IEEE Robotics \&
+Automation Magazine, 2005: 46-57.
+\bibitem RW. Beard, TW. Mclain, MA. Goodrich, et al. Coordinated target assignment and intercept
+for unmanned air vehicles[J]. IEEE Transactions on Robotics and Automation, 2002, 18(6):
+911-922.
+\bibitem A. Ryan, M. Zennaro, A. Howell, et al. An overview of emerging results in cooperative
+UAV control[C]. Decision and Control, 2004. CDC. 43rd IEEE Conference on. IEEE, 2005.
+\bibitem I. Maza, K. Kondak, M. Bernard, et al. Multi-UAV Cooperation and Control for Load
+Transportation and Deployment[J]. 57(1-4): 417-449.
+\bibitem V. Srovnai, P. Newiva. Distributed control systems of pipe line networks using multi-agent
+technology[A]. Proc. of the 2nd IFAC/IFIP/IEEE Conf. on Management and Control of
+Production and Logistics, Oxford, 2001, 1093—1099.
+\bibitem MB. Blake. Rule-driven coordination agents: self-configurable agent architecture for
+distributed control [A]. Proc. of the 5th Inter Symposium on Autonomous Decentralized
+Systems (ISADS2001), USA, IEEE Press, 2001, 271—277.
+\bibitem RW. Brennan, M. Fletcher, DH. Norrie. An agent-based approach to reconfiguration of
+real-time distributed control systems[J]. IEEE Transactions on Robotics and Automation,
+2002, 18(4): 444-451.
+019(12): 1321-1326,1340.
+\bibitem P. Bhattacharjee, P. Rakshit, I. Goswami, et al. Multi-robot path-planning using artificial
+bee colony optimization algorithm[C]. Third World Congress on Nature \& Biologically Inspired
+Computing, IEEE, 2011.
+\bibitem D. Karaboga, B. Basturk. On the performance of artificial bee colony (ABC) algorithm[J].
+Applied Soft Computing, 8(1): 687-697.
+\bibitem S. Lukasik, Z. Slawomir. Firefly Algorithm for Continuous Constrained Optimization
+Tasks[C]. International Conference on Computational Collective Intelligence Semantic Web,
+dx.doi.org, 2009.
+\bibitem H. S. Wu, F. M. Zhang, L. S. Wu. New swarm intelligence algorithm——wolf pack
+algorithm[J]. Systems Engineering \& Electronics, 2013, 35(11).
+\bibitem M. Wooldridge, R. Nicholas, D. Kinny. The Gaia methodology for agent-oriented analysis
+and design[J]. Autonomous Agents and multi-agent systems 3.3(2000): 285-312.
+\bibitem L. Cabac, D. Moldt. Formal semantics for AUML agent interaction protocol
+diagrams[C]. International Workshop on Agent-Oriented Software Engineering, Springer,
+Berlin, Heidelberg, 2004.
+\bibitem R. Manfred, S. Rinderle, P. Dadam. Adept workflow management system[C]. International
+Conference on Business Process Management. Springer, Berlin, Heidelberg, 2003.
+\bibitem H. Susan, G. Beni. Self-organization of sensors for swarm intelligence[J]. Proceedings
+1992 IEEE International Conference on Robotics and Automation, IEEE, 1992.
+\bibitem D. Marco, G. Di Caro. Ant colony optimization: a new meta-heuristic[J]. Proceedings of
+the 1999 congress on evolutionary computation-CEC99, IEEE, 1999, Vol. 2.
+\end{thebibliography}
+
+\newpage
+\section{Appendix}
+Here are simulation programmes we used to test and verify our models as follows. \par
+These source codes are in the Python language and used the Taichi library, if you want to run these codes, please have installed Taichi first using following command:
+
+\lstinputlisting[language=sh]{./code/taichi.txt}
+
+\subsection{Appendix A}
+\textbf{\textcolor[rgb]{0.98,0.00,0.00}{Tachi/Python source}} for \textbf{\textcolor[rgb]{0.00,0.00,0.98}{Question I}}:
+\lstinputlisting[language=Python]{./code/prob1.py}
+
+\subsection{Appendix B}
+\textbf{\textcolor[rgb]{0.98,0.00,0.00}{Tachi/Python source}} for \textbf{\textcolor[rgb]{0.00,0.00,0.98}{Question II}}:
+\lstinputlisting[language=Python]{./code/prob2.py}
+
+\end{document}
