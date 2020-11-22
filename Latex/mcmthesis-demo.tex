@@ -21,11 +21,11 @@
 \date{\today}
 \begin{document}
 \begin{abstract}
-With the development of artificial intelligence technology and independent technology, the collaborative perception, planning and coordination of unmanned swarm in dynamic confrontation environment are dramatically developing. In this paper, we propose three novel confrontation models discussed and employed in three different context. \\
-First, we propose a model for verifying Question I. After simplifying the original problem and establishing assumptions, we employ a hypothetical chasing strategy for the Red USVs, meanwhile, consider the Blue USV's strategy from cost time and minimum distance maximize optimization aspects simultaneously. We prove that no matter what kind of pursuit strategy the Red USVs adopts, the Blue UAV can always realize the successful penetration. \\
-Secendly, We analysis the existence of $M_{min}$ and $M_{max}$ for Question II, then based on the discussion of M, assigning corresponding time-optimal interception and penetration strategies to red and blue parties. First, we remodel the Red USVs using a constrained particle swarm algorithm, which uses heuristic algorithms to optimize strategies for the Red USV clusters. Next, we use the convolutional neural network (CNN) to predict the Red USV clusters flight trajectory, and propose corresponding countermeasures for the Blue USV under different conditions. \\
+With the development of artificial intelligence technology and independent technology, the collaborative perception, planning, and coordination of unmanned swarm in a dynamic confrontation environment are dramatically developing. In this paper, we propose three novel confrontation models discussed and employed in three different contexts. \\
+First, we propose a strategy model for verifying Question I. After simplifying the original problem and establishing assumptions, we employ a hypothetical chasing strategy for the Red USVs, meanwhile, consider the Blue USV's strategy from cost time and minimum distance maximize optimization aspects simultaneously. We prove that no matter what kind of pursuit strategy the Red USVs adopts, the Blue UAV can always realize the successful penetration. \\
+Secondly, We analyze the existence of $M_{min}$ and $M_{max}$ for Question II, then based on the discussion of M, assigning corresponding time-optimal interception and penetration strategies to red and blue parties. First, we remodel the Red USVs using a constrained particle swarm algorithm, which uses heuristic algorithms to optimize strategies for the Red USV clusters. Next, we use the convolutional neural network (CNN) to predict the Red USV clusters flight trajectory, and propose corresponding countermeasures for the Blue USV under different conditions. \\
 And then, in the Question III scenario, we continue to apply the strategy model based on the Question II hypothesis, and on this basis, we further analyze the advantages of the Blue USV bringing by maneuvering seduction strategy, extract several key points on its moving path for the Red USV Carrier to determine how to release USV clusters. \\
-Finally, we use Matlib and Python/Taichi codes to verify our models as well as visualize the confrontation result both in real-time and in visualize the confrontation result both in real-time and the chart. \\
+Finally, we use Matlab and Python/Taichi codes to verify our models as well as visualize the confrontation result both in real-time and in visualizing the confrontation result both in real-time and the chart. \\
 We deduce our conclusions in the end, summarize our strengths and weaknesses.
 \begin{keywords}
 USV cluster, cluster collaborative control, multi-agent system, swarm intelligence
@@ -41,14 +41,13 @@ To Reduce dependence on land-based,sea-based, and air-based platforms, more and 
 Judging from the military conflicts in recent years, air defense is facing a more new and complex threat. Among them, the usage of artificial intelligence, integrated, group control, data fusion, collaborative interaction, and other technologies have enabled manifold small-scale, low-cost drone swarms (cluster) combat becomes possible, provides options for more strategic battles and tactics for confrontation at all levels, and brings great Subversion and challenges to traditional offensive and air defense styles.\\
 Based on the fact that the future combat subject changes from a single USV to USV cluster coordination, the original single human-machine combat systems, combat methods, and individual intelligence algorithms will be no longer applicable, we present a swarm intelligence-based USV cluster collaborative confrontation as a possible solution.
 
-\subsection{Restatement of the problem}
-
-\subsection{Our Approach}
 
 \section{Notations}
 
-In this section we list all the notations used in our work, mostly have already defined in the problem statement, and we define the remain numerical values. See Table.1 for details.
+In this section we list all the notations used in our work, most have already been defined in the problem statement, and we define the remain numerical values. See Table.1 for details.
 
+
+% \newgeometry{left = 1.5 cm}
 \begin{table} [H]
 \small
 \centering
@@ -74,6 +73,7 @@ $\mathbf{V}_{C}$      				   & Minimum speed of the Red USV's Carriers          
 $R_{C}$      				   & Minimum turning radius of Red USV's Carriers            & m    &500\\ \hline
 \end{tabular}
 \end{table}
+% \restoregeometry
 
 \section{The Models}
 
@@ -83,8 +83,8 @@ $R_{C}$      				   & Minimum turning radius of Red USV's Carriers            & 
 In the first model, our target is to identify any location inside in the $(L, M)$ rectangle is all available for Blue USV to penetratee within 700s, which is identical to prove that there at least exists an optimization strategy for the Blue USV that could even handle the worst initial position in the given constraints. It's necessary to point out that compares to the other models we will discuss in the later sections, the prerequisite of the first model is more restrictive thus we could do more extra specific assumptions and simplifications. We will use this model to solve the first question in the following steps. First, we restate the question in mathematic formulas. Second, based on the inference, we propose a hypothetical Red USVs' strategy that way stronger than any feasible strategies. Finally, we prove that even in this situation, the corresponding strategy for Blue USV we made is still advantageous to help Blue USV to avoid interception in any case, to achieve this, in this model we transform the original problem into two different optimization problems, prove the validity of our conclusion separately.
 
 \subsubsection{Mathematical analysis}
-The problem domain is two dimensions, thus we use Cartesian coordinate system to describe the positions of USVs. In the initial state, $\mathbf{P}(0)_{C_1}=(L, 2)$ is the location of one of the Red USV carrier, $\mathbf{P}_{C_2}(0)=(L, 5)$ is the location of another. The location of Blue USVs is $\mathbf{P}(0)_{E}=(X_E, Y_E)$, where we will discuss the select of $X_E$ and $Y_E$ later. Symbol $\mathbf{P}(t)$ means position vector at time $t$. \par
-In order to achieve the integration of position, we use finite difference method to discretize time and integral $\mathbf{P}(t)$ using semi-implicit integrator, i.e. 
+The problem domain is two dimensions, thus we use the Cartesian coordinate system to describe the positions of USVs. In the initial state, $\mathbf{P}(0)_{C_1}=(L, 2)$ is the location of one of the Red USV carrier, $\mathbf{P}_{C_2}(0)=(L, 5)$ is the location of another. The location of Blue USVs is $\mathbf{P}(0)_{E}=(X_E, Y_E)$, where we will discuss the selection of $X_E$ and $Y_E$ later. Symbol $\mathbf{P}(t)$ means position vector at time $t$. \par
+To achieve the integration of position, we use the finite difference method to discretize time and integral $\mathbf{P}(t)$ using a semi-implicit integrator, i.e.
 
 \begin{equation}
 \mathbf{P}(t_{n+1})=\mathbf{P}(t_{n})+\mathbf{V}(t_{n+1})
@@ -132,7 +132,7 @@ And the cross-product $\mathbf{d}(t_{n}) \times \mathbf{d}(t_{n+1})$ judges $\ma
 $D_{rb}$, $D_{r2r}$ and so forth can be represented as constraints within the Euclidean metric between USVs, it's something trivial that we skip the discussion for them.
 
 \subsubsection{Red part strategy}
-In the original problem, there are numerous constraints that limit the movement of Red USVs. In this sub-section, we discuss to release all the constraints thus to propose a strengthened Red USVs' strategy, which use to prove question I in a strengthened condition. \par
+In the original problem, numerous constraints limit the movement of Red USVs. In this sub-section, we discuss to release all the constraints thus to propose a strengthened Red USVs' strategy, which use to prove question I in a strengthened condition. \par
 
 As the problem said, the distance between the Red USVs Carrier and at least one UAV in the UAVs cluster is not more than $D_{rc}$=2km, meanwhile the speed of the Red USVs Carrier is not more than $V_C$=16m/s and the turning radius is not less than $R_{C}$=500m. It turns out that whether the speed or the minimum turning radius, the Red USV carrier restricts the free movement of the Red SUVs on account of both distance and Red-USV-Carrier-own-property constraints, which means if we abandon these constraints, the Red USVs will get more degree of freedom. \par
 
@@ -174,13 +174,13 @@ It turns out that to meet the worst requirement, $Y_E$ is equivalent to $\frac{M
 
 Another optimization target is the time used to penetrate, the corresponding strategy is to move straight and parallel to the y-axis, our experiment shows that when $(E_X, E_Y) = (\frac{7}{2}, 0)$, it's available for the Blue USV to penetrate.
 
-Combine all previous assumptions and analyses into our Model I, we can conclude that no matter what strategy the Red USVs applied or where the initial position the Blue USVs start off, we can propose a descriptive strategy for the Blue USV to tackle with. To optimize the cost time, the best penetration strategy is go horizontal and straight. See more experiment results in the next section.
+Combine all previous assumptions and analyses into our Model I, we can conclude that no matter what strategy the Red USVs applied or where the initial position the Blue USVs start, we can propose a descriptive strategy for the Blue USV to tackle with. To optimize the cost time, the best penetration strategy is to go horizontal and straight. See more experiment results in the next section.
 
 \subsection{Model II}
 \subsubsection{Overview}
-The first model we proposed it's suitable to solve the question I, nevertheless, for question II, we need to do quantitative analysis rather than qualitative, where we could not inherit the simplification and the assumption we applied in Model I. Thus we proposed our Model II. While it succeeds in most mathematical formalization, it appropriately takes the significant impact of the constraints of the Red USV carriers and the coactions based on the USVs cluster into consideration and makes up two groups of brand new strategies for the Red and Blue USVs. \par
+The first model we proposed it's suitable to solve question I, nevertheless, for question II, we need to do quantitative analysis rather than qualitative, where we could not inherit the simplification and the assumption we applied in Model I. Thus we proposed our Model II. While it succeeds in most mathematical formalization, it appropriately takes the significant impact of the constraints of the Red USV carriers and the coactions based on the USVs cluster into consideration and makes up two groups of brand new strategies for the Red and Blue USVs. \par
 
-Our target is to analysis existence of the $M_{min}$ and the $M_{max}$, then based on the discussion of M, assigning corresponding time-optimal interception and penetration strategies to red and blue parties. First, we remodel the Red USVs using a constrained particle swarm algorithm, which uses heuristics to optimize strategies for the cluster. Next, we use the convolutional neural network (CNN) to predict the Red USV clusters flight trajectory, and propose corresponding countermeasures for the Blue USV under different conditions. Finally, we let the two parties emulate in different $M$ context and get the result.
+Our target is to analyze the existence of the $M_{min}$ and the $M_{max}$, then based on the discussion of M, assigning corresponding time-optimal interception and penetration strategies to red and blue parties. First, we remodel the Red USVs using a constrained particle swarm algorithm, which uses heuristics to optimize strategies for the cluster. Next, we use the convolutional neural network (CNN) to predict the Red USV clusters flight trajectory, and propose corresponding countermeasures for the Blue USV under different conditions. Finally, we let the two parties emulate in different $M$ context and get the result.
 
 \subsubsection{Red part strategy}
 	Particle Swarm Optimization, i.e PSO. Each particle in the particle swarm represents a possible solution to a problem. Through the simple behavior of individual particles and the interaction of information within the swarm,  to realize the intelligence of problem-solving. \par
@@ -261,13 +261,13 @@ q_i(x) &= \mathbf{min}(0, L_i(x)) \\
 
 \subsubsection{Blue part strategy}
 
-First, we prove the existance of the lower limit $M_min$ of channel bandwidth $M$ is existent. It's obvious that when $M$ approaches $0$, the Blue USV will gradually be restricted to flying horizontally and straight, which means that the Blue USV's maneuverability will get worse and worse. Under the condition of flying in opposite directions, it will not have enough ability to avoid chasing, so it will definitely be intercepted in the end. A more quantitative discussion based on the Blue ultimate strategy will be given later. Now, we propose a method of predicting the actions of the red party using a convolutional neural network. Based on the historical moving path, it feeds back the prediction of the overall direction of the red cluster as a black box: \par
+First, we prove the existence of the lower limit of $M_min$ of channel bandwidth $M$ is existent. It's obvious that when $M$ approaches $0$, the Blue USV will gradually be restricted to flying horizontally and straight, which means that the Blue USV's maneuverability will get worse and worse. Under the condition of flying in opposite directions, it will not have enough ability to avoid chasing, so it will definitely be intercepted in the end. A more quantitative discussion based on the Blue ultimate strategy will be given later. Now, we propose a method of predicting the actions of the red party using a convolutional neural network. Based on the historical moving path, it feeds back the prediction of the overall direction of the red cluster as a black box: \par
 
 \begin{equation}
 \mbox{direction estmation} = \mathbf{CNN}({\mbox{historical paths}})
 \end{equation}
 
-Convolutional neural network, i.e. CNN, is a kind of feedforward neural network with convolution calculation and deep structure. CNN has the ability of representation learning, and can classify input information according to its hierarchical structure. The convolution kernel parameter sharing in the hidden layer and the sparsity of the connections between the layers enable the convolutional neural network to perform grid-like topology features with a small amount of calculation. \par
+A convolutional neural network, i.e. CNN, is a kind of feedforward neural network with convolution calculation and deep structure. CNN has the ability of representation learning and can classify input information according to its hierarchical structure. The convolution kernel parameter sharing in the hidden layer and the sparsity of the connections between the layers enable the convolutional neural network to perform grid-like topology features with a small amount of calculation. \par
 
 In the previous formula, we discretize the continuum time into a $\mathbf{dt}$-spaced sequence, i.e. $t_1$, $t_2$, ..., $t_n$.  Use these time steps as dependent variable, we could induce sequences $\mathbf{P_{k}}(t_0)$, $\mathbf{P_{k}}(t_1)$, ..., $\mathbf{P_{k}}(t_n)$ and $\mathbf{d_{k}}(t_0)$, $\mathbf{d_{k}}(t_1)$, ..., $\mathbf{d_{k}}(t_n)$  as the input of our CNN model, where $\mathbf{P_{k}}(t_n)$ and $\mathbf{d_{k}}(t_n)$ are the position and direction vectors at the discretized time $t_n$ of the label number $k$ USV, $k=0$ represents the Blue USV, $k = 1, 2$ represents the Red USV Carriers, $k=3,...,12$ represents the Red USVs. Consequently, the input is a $26 \times (n+1)$ Matrix:
 
@@ -281,7 +281,7 @@ In the previous formula, we discretize the continuum time into a $\mathbf{dt}$-s
   \end{pmatrix}
 \end{equation}
 
-And our CNN model output is a Matrix containing two vectors estimating the direction of next movement of the two Red USV clusters:
+And the output of our CNN model is a Matrix whic contains two vectors estimating the direction of next movement of the two Red USV clusters:
 
 \begin{equation}
 \mathbf{M_{out}} = [\mathbf{d_{1}}(t_{n+1}) \vert \mathbf{d_{2}}(t_{n+1})] = 
@@ -291,7 +291,7 @@ And our CNN model output is a Matrix containing two vectors estimating the direc
   \end{bmatrix}
 \end{equation}
 
-The reason why we used CNN is it makes full use of the characteristics of the input data. The key structure of the CNN is the pooling and convolutional layer, which use downsampling to reduce the dimensionality of features and retain effective information to avoid overfitting to a certain extent. Considering the $\mathbf{dt}$-spaced sequence $\mathbf{P}(t_0)$, $\mathbf{P}(t_1)$, ..., $\mathbf{P}(t_n)$, if we applied the downsampling and reduce the sequence into half, i.e. $\mathbf{P}^{'}(t_0)$, $\mathbf{P}^{'}(t_1)$, ..., $\mathbf{P}^{'}(\frac{t_n}{2})$, the result is the $\mathbf{2dt}$-spaced sequence. It turns out that each layer in the CNN is a discretization formation of the original continuum problem. The consistency of the problem will not be destroyed, and the nature of the data can be discovered from different fitting accuracy.
+The reason why we used CNN is that makes full use of the characteristics of the input data. The key structure of the CNN is the pooling and convolutional layer, which use downsampling to reduce the dimensionality of features and retain effective information to avoid overfitting to a certain extent. Considering the $\mathbf{dt}$-spaced sequence $\mathbf{P}(t_0)$, $\mathbf{P}(t_1)$, ..., $\mathbf{P}(t_n)$, if we applied the downsampling and reduce the sequence into half, i.e. $\mathbf{P}^{'}(t_0)$, $\mathbf{P}^{'}(t_1)$, ..., $\mathbf{P}^{'}(\frac{t_n}{2})$, the result is the $\mathbf{2dt}$-spaced sequence. It turns out that each layer in the CNN is a discretization formation of the original continuum problem. The consistency of the problem will not be destroyed, and the nature of the data can be discovered from different fitting accuracy.
 
 \begin{figure}[h]
 \small
@@ -300,18 +300,18 @@ The reason why we used CNN is it makes full use of the characteristics of the in
 \caption{Layer Structure of CNN} \label{fig:Layer Structure of CNN}
 \end{figure}
 
-The layer structure of our CNN model shows in Figure. 1. Given the input matrix $\mathbf{M}$, we restrict n+1=100. Firstly, we apply 10x26x50 convolution kernel in layer 1, and layer 2 is the max-pooling layer with 1x2 kernel. Similarly, 10x26x5 convolution kernel is used in layer 3 and the following layer is the max-pooling layer with 1x4 kernel. Note that in these CNN layers, we maintain the column width unchanged. Next, we flatten all nodes, add a 500-nodes fully connected layer 5, and connect it to the output layer. In practice, we use ReLU activate funcions in the previous layers and sigmoid function in the output layer. \par
+The layer structure of our CNN model shows in Figure. 1. Given the input matrix $\mathbf{M}$, we restrict n+1=100. Firstly, we apply 10x26x50 convolution kernel in layer 1, and layer 2 is the max-pooling layer with 1x2 kernel. Similarly, 10x26x5 convolution kernel is used in layer 3 and the following layer is the max-pooling layer with 1x4 kernel. Note that in these CNN layers, we maintain the column width unchanged. Next, we flatten all nodes, add a 500-nodes fully connected layer 5, and connect it to the output layer. In practice, we use ReLU activate functions in the previous layers and sigmoid function in the output layer. \par
 
-By virtue of the proposed Red USV strategy, we could get the corresponding Red USV clusters route under different Blue USV flight routes so as to get a lot of data to train our model. Through tuning and training, we finally got a practical analyzer that can stably predict the path of the Red USV clusters. \par
+Under the proposed Red USV strategy, we could get the corresponding Red USV clusters route under different Blue USV flight routes to get a lot of data to train our model. Through tuning and training, we finally got a practical analyzer that can stably predict the path of the Red USV clusters. \par
 
 \paragraph{strategy I}
 
-To optimize the time variable for penetration, if possible, it's obvious that we first consider move horizontal, which $t=\frac{M}{\mathbf{V}_{B}}$ is the global optimal solution. The disscusion reduces to the Model I condition. The feasibility of this strategy is simultaneously affected by $M$ and relative y-axis phase difference between two Red USV carriers and the Blue USV, i.e. 
+To optimize the time variable for penetration, if possible, it's obvious that we first consider move horizontal, which $t=\frac{M}{\mathbf{V}_{B}}$ is the global optimal solution. The disscussion reduces to the Model I condition. The feasibility of this strategy is simultaneously affected by $M$ and relative y-axis phase difference between two Red USV carriers and the Blue USV, i.e. 
 \begin{equation}
 \mathbf{min}(\mathbf{G_1}_y - \frac{M}{2}, \mathbf{G_2}_y - \frac{M}{2})
 \end{equation}
 
-However, in most cases easpecially when the Red USVs' strategy is optimal, this strategy is not available. Thus we turn to consult other strategies. Specifically, when the equation above is unsatisfied but $M$ is not so restrictive, we apply the following strategy.
+However, in most cases especially when the Red USVs' strategy is optimal, this strategy is not available. Thus we turn to consult other strategies. Specifically, when the equation above is unsatisfied but $M$ is not so restrictive, we apply the following strategy.
 
 \paragraph{strategy II}
 
@@ -321,29 +321,7 @@ It's certain that if we want to optimize the cost time between $\mathbf{P}_A$ an
 \mathbf{d}(t_m)=\frac{\mathbf{P}_B \mathbf{P}_D}{\vert \vert \mathbf{P}_B \mathbf{P}_D \vert \vert} \quad ,m = 0, 1, 2, ..., n
 \end{equation}
 
-In our strategy, the destinate will change during the movement that we later discuss. \par
-
-Similar to the positive related coefficient $\sigma$ we defined previously,  we redefine a new coefficient $\phi$ to measure the impact of the choice of the end position on the movement of the penetration,  we believe that the impact is related to the distance between the two points $\mathbf{G1}$ and $\mathbf{G2}$ and the straight line from the start point to the endpoint, i.e.
-
-\begin{equation}
-\sigma = \mathbf{min}(\mathbf{L}(\vert \vert \mathbf{P_B}, \mathbf{P_D}, u) - \mathbf{G1} \lvert \lvert, \lvert \lvert \mathbf{L}(\mathbf{P_B}, \mathbf{P_D}, u) - \mathbf{G2} \lvert \lvert), \quad u \in [0, 1]
-\end{equation}
-
-Where \textbf{L} is the Linear interpolation function, $\mathbf{L}(\mathbf{A}, \mathbf{B}, u) = u \cdot \mathbf{A} + (1 - u) \cdot \mathbf{B}$. \par
-
-Let $y_E$ be the value of the end point y-coordinate, $g_1$ be the value of $\mathbf{G1}$ y-coordinate, $g_2$ be the value of $\mathbf{G2}$ y-coordinate, through derivation, we get the function as:
-
-\begin{equation}
-\phi=f(y_E)=\left\{
-\begin{array}{rcl}
-\frac{(y_E - g_2)L}{\sqrt{L^2+(y_E-\frac{M}{2})^2}} & & 0 \leq g_1 < g_2 \leq y_E \\  
-\frac{(y_E - g_1)L}{\sqrt{L^2+(y_E-\frac{M}{2})^2}} & & 0 \leq g_1 \leq y_E < g2, y_E \leq \frac{g_1 + g2}{2}\\
-\frac{(g2 - y_E)L}{\sqrt{L^2+(y_E-\frac{M}{2})^2}} & & 0 \leq g_1 \leq y_E < g2, y_E > \frac{g_1 + g2}{2}\\ 
-\frac{(g2 - y_E)L}{\sqrt{L^2+(y_E-\frac{M}{2})^2}} & & y_E < g_1 < g_2 \leq M
-\end{array} \right.
-\end{equation}
-
-Instead of setting $\phi$ as our optimization target, our target is the cost time thus we only need $\phi = f(y_E)$ greater than some certain number $\phi_0$, which gives $y_E$ a boundary restruction. Under the constraint, our goal is $\sqrt{L^2+(y_E - \frac{M}{2})}$
+In our strategy, the destinate will change during the movement that we later discuss.
 
 \section{Test Model}
 \subsection{Model I}
