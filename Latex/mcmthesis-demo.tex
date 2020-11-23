@@ -183,9 +183,10 @@ The first model we proposed it's suitable to solve question I, nevertheless, for
 Our target is to analyze the existence of the $M_{min}$ and the $M_{max}$, then based on the discussion of M, assigning corresponding time-optimal interception and penetration strategies to red and blue parties. First, we remodel the Red USVs using a constrained particle swarm algorithm, which uses heuristics to optimize strategies for the cluster. Next, we use the convolutional neural network (CNN) to predict the Red USV clusters flight trajectory, and propose corresponding countermeasures for the Blue USV under different conditions. Finally, we let the two parties emulate in different $M$ context and get the result.
 
 \subsubsection{Red part strategy}
-	Particle Swarm Optimization, i.e PSO. Each particle in the particle swarm represents a possible solution to a problem. Through the simple behavior of individual particles and the interaction of information within the swarm,  to realize the intelligence of problem-solving. \par
-	There are two Red USVs groups in the square, each one at the midpoint of the two halves. That's to allow the red UAV to have a more balanced and rapid response time compared to other points during the interception process in their respective half. Even in the case of Blue USV flying along the middle, this approach is better for the interception.\par
-	The two Red USVs groups are regarded as two-particle swarms, and the particle swarm algorithm is adopted for each particle swarm. The algorithm influences the overall optimal solution through the individual optimal solution and revises the individual optimal solution through the overall optimal solution. The goal here is to intercept the Blue USV. Red USVs only need to make the closest flight towards the target during the flight. The updating formula of the particle swarm optimization algorithm is as follows:
+First, we prove the existance of the upper limit $M_{max}$ of channel bandwidth $M$ is existent. When $M$ approaches $+ \infty$, because the speed of Blue USV is faster than Red USVs, the Blue USV could fly as far away from the red drone as possible within the time limit. In this case, the Blue USV can reach a position where the Red USVs cannot catch up. After reaching this position, the Blue USV flies directly to the end to reach the goal. Next, let's analyze how the Red USVs works. \par
+Particle Swarm Optimization, i.e PSO. Each particle in the particle swarm represents a possible solution to a problem. Through the simple behavior of individual particles and the interaction of information within the swarm,  to realize the intelligence of problem-solving. \par
+There are two Red USVs groups in the square, each one at the midpoint of the two halves. That's to allow the red UAV to have a more balanced and rapid response time compared to other points during the interception process in their respective half. Even in the case of Blue USV flying along the middle, this approach is better for the interception.\par
+The two Red USVs groups are regarded as two-particle swarms, and the particle swarm algorithm is adopted for each particle swarm. The algorithm influences the overall optimal solution through the individual optimal solution and revises the individual optimal solution through the overall optimal solution. The goal here is to intercept the Blue USV. Red USVs only need to make the closest flight towards the target during the flight. The updating formula of the particle swarm optimization algorithm is as follows:
 
 \begin{align}
 \mathbf{V}_i^{k+1} & =\omega \mathbf{V}_i^k + c_1 r_{i1}^k (\mathbf{P}_i^k - \mathbf{X}_i^k) + c_2 r_{i2}^k (\mathbf{P}_g^k - \mathbf{X}_i^k) \\
@@ -267,7 +268,7 @@ First, we prove the existence of the lower limit of $M_min$ of channel bandwidth
 \mbox{direction estmation} = \mathbf{CNN}({\mbox{historical paths}})
 \end{equation}
 
-A convolutional neural network, i.e. CNN, is a kind of feedforward neural network with convolution calculation and deep structure. CNN has the ability of representation learning and can classify input information according to its hierarchical structure. The convolution kernel parameter sharing in the hidden layer and the sparsity of the connections between the layers enable the convolutional neural network to perform grid-like topology features with a small amount of calculation. \par
+Cconvolutional neural network, i.e. CNN, is a kind of feedforward neural network with convolution calculation and deep structure. CNN has the ability of representation learning and can classify input information according to its hierarchical structure. The convolution kernel parameter sharing in the hidden layer and the sparsity of the connections between the layers enable the convolutional neural network to perform grid-like topology features with a small amount of calculation. \par
 
 In the previous formula, we discretize the continuum time into a $\mathbf{dt}$-spaced sequence, i.e. $t_1$, $t_2$, ..., $t_n$.  Use these time steps as dependent variable, we could induce sequences $\mathbf{P_{k}}(t_0)$, $\mathbf{P_{k}}(t_1)$, ..., $\mathbf{P_{k}}(t_n)$ and $\mathbf{d_{k}}(t_0)$, $\mathbf{d_{k}}(t_1)$, ..., $\mathbf{d_{k}}(t_n)$  as the input of our CNN model, where $\mathbf{P_{k}}(t_n)$ and $\mathbf{d_{k}}(t_n)$ are the position and direction vectors at the discretized time $t_n$ of the label number $k$ USV, $k=0$ represents the Blue USV, $k = 1, 2$ represents the Red USV Carriers, $k=3,...,12$ represents the Red USVs. Consequently, the input is a $26 \times (n+1)$ Matrix:
 
@@ -281,7 +282,7 @@ In the previous formula, we discretize the continuum time into a $\mathbf{dt}$-s
   \end{pmatrix}
 \end{equation}
 
-And the output of our CNN model is a Matrix whic contains two vectors estimating the direction of next movement of the two Red USV clusters:
+And the output of our CNN model is a Matrix which contains two vectors estimating the direction of next movement of the two Red USV clusters:
 
 \begin{equation}
 \mathbf{M_{out}} = [\mathbf{d_{1}}(t_{n+1}) \vert \mathbf{d_{2}}(t_{n+1})] = 
@@ -321,17 +322,77 @@ It's certain that if we want to optimize the cost time between $\mathbf{P}_A$ an
 \mathbf{d}(t_m)=\frac{\mathbf{P}_B \mathbf{P}_D}{\vert \vert \mathbf{P}_B \mathbf{P}_D \vert \vert} \quad ,m = 0, 1, 2, ..., n
 \end{equation}
 
-In our strategy, the destinate will change during the movement that we later discuss.
+In our strategy, the destinate will change during the movement that we later discuss. \par
+
+Similar to the positive related coefficient $\sigma$ we defined previously,  we redefine a new coefficient $\phi$ to measure the impact of the choice of the end position on the movement of the penetration,  we believe that the impact is related to the distance between the two points $\mathbf{G1}$ and $\mathbf{G2}$ and the straight line from the start point to the endpoint, i.e.
+
+\begin{equation}
+\sigma = \mathbf{min}(\mathbf{L}(\vert \vert \mathbf{P_B}, \mathbf{P_D}, u) - \mathbf{G1} \lvert \lvert, \lvert \lvert \mathbf{L}(\mathbf{P_B}, \mathbf{P_D}, u) - \mathbf{G2} \lvert \lvert), \quad u \in [0, 1]
+\end{equation}
+
+Where \textbf{L} is the Linear interpolation function, $\mathbf{L}(\mathbf{A}, \mathbf{B}, u) = u \cdot \mathbf{A} + (1 - u) \cdot \mathbf{B}$. \par
+
+Let $y_E$ be the value of the end point y-coordinate, $g_1$ be the value of $\mathbf{G1}$ y-coordinate, $g_2$ be the value of $\mathbf{G2}$ y-coordinate, through derivation, we get the function as:
+
+\begin{equation}
+\phi=f(y_E)=\left\{
+\begin{array}{rcl}
+\frac{(y_E - g_2)L}{\sqrt{L^2+(y_E-\frac{M}{2})^2}} & & 0 \leq g_1 < g_2 \leq y_E \\  
+\frac{(y_E - g_1)L}{\sqrt{L^2+(y_E-\frac{M}{2})^2}} & & 0 \leq g_1 \leq y_E < g2, y_E \leq \frac{g_1 + g2}{2}\\
+\frac{(g2 - y_E)L}{\sqrt{L^2+(y_E-\frac{M}{2})^2}} & & 0 \leq g_1 \leq y_E < g2, y_E > \frac{g_1 + g2}{2}\\ 
+\frac{(g2 - y_E)L}{\sqrt{L^2+(y_E-\frac{M}{2})^2}} & & y_E < g_1 < g_2 \leq M
+\end{array} \right.
+\end{equation}
+
+Instead of setting $\phi$ as our optimization target, our target is the cost time thus we only need $\phi = f(y_E)$ greater than or equal to some certain number $\phi_0$, which gives $y_E$ a boundary restriction. Under this constraint, our goal is to minimize $\sqrt{L^2+(y_E - \frac{M}{2})^2}$, which is equally to minimize $\vert \vert y_E - \frac{M}{2} \vert \vert$. It's certainly a nonlinear-programming problem, but given the $\phi_0$, we can actually calculate solution analytically. \par
+
+Now let's discuss when we could change our destination during the movement. If the penetration is successful, there must exist a final stage of the confrontation that both the Blue USV and the Red clusters move in the same straight route or at least approximately the same direction, where:
+
+\begin{equation}
+\mathbf{d_{Red}}(t_m) \cdot \mathbf{d_{Blue}}(t_m) \geq 1 - \epsilon
+\end{equation}
+
+where $\epsilon$ is a control variable to control the degree of approximation. If the above equation could meet when $t_n \geq t_m$, as long as it can be satisfied at the same time that $\vert \vert \mathbf{P_{Red}} - \mathbf{P_{Red}} \vert \vert > D_{min}$ for all the Red USV. the Blue USV could change its direction towards horizontal under the minimum turning radius constraint.
+
+\paragraph{strategy III}
+
+Considering when the $M$ is small or the $\mathbf{G_1}$, $\mathbf{G_2}$ are asymmetrical to the penetration path, i.e. $\phi = f(y_E) \geq \phi_0$ is unsolvable. The strategy II is not available at the beginning. At this time, we use deception to attract the Red USV to one side and maneuver to another area at a high speed to successfully penetrate the defense. Rather than set destination on the boundary $\mathbf{CD}$, we first determine a direction satisfied $\phi \geq \phi_0$, and move straight towards this direction until Equation. (30) is met. Then we judge whether strategy II is available or not. If is available, we apply strategy II. If not, we continue to repeat the previous maneuver strategy, until that the conditions of strategy II are met.
 
 \section{Test Model}
 \subsection{Model I}
 \begin{figure}[h]
-\small
 \centering
 \includegraphics[width=16cm]{Figure_1.png}
-\includegraphics[width=16cm]{Figure_2.png}
 \caption{Model I result} \label{fig:Model I result}
 \end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics[width=16cm]{Figure_2.png}
+\caption{Model II result} \label{fig:Model II result}
+\end{figure}
+
+
+\section{Conclusion}
+In these three questions, the Red USVs and the Blue USV have many methods of action. It is very difficult to consider all possibilities, only to start with a few basic decision-making methods. Considering that the Blue USV is more mobile than the Red USVs, we give priority to analyzing the movement mode of the Red UAVs. Set the movement of the Blue USV according to the movement of the Red USVs, and modify the movement of the Red USV according to the movement of the Blue USV. When the red USVs are moving, it is also necessary to consider the distance between them and the distance from the Red USVs carrier. This adds a lot of difficulty to problem-solving. Different algorithms and mathematical models are required for different movement methods of USVs. In order to obtain more accurate solutions, smarter algorithms are required and more complex situations are taken into account.
+
+\subsection{Strengths}
+
+• Applies widely \par
+	Our decision model about Red USVs and Blue USV applies to various situations under this type of model. Can adapt to various situations by modifying basic parameters and equations. \\ \\
+• The result is globally optimal \par
+	In any case, the solution under the global conditions can be found. \\ \\
+• High algorithm accuracy \par
+	The algorithms and optimizations we used in the model make the conclusions more accurate under these conditions.\\ \\
+• Reliable computing platform \par
+	Using Matlab and Python/Taichi professional mathematical software to calculate the model, the calculated results are highly reliable. \\
+\subsection{Weaknesses}
+
+• Simplify the problem \par
+	In order to facilitate calculation and analysis, we fixed the decision of the red UAVs.This reduces possible decision-making situations. \\ \\
+• The result is not locally optimal \par
+	There is randomness in local decision-making, so that the final one may not be the rightmost.\\ \\
+• Low decision elasticity \par
+	We fixed our decisions on the red UAV and the blue UAV, and did not use multiple decisions for simulation in one calculation. \\
 
 \begin{thebibliography}{99}
 \bibitem L. Merino, F. Caballero, JR. Martínez-de-Dios, et al. An Unmanned Aircraft System for
