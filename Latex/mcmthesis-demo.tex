@@ -21,11 +21,11 @@
 \date{\today}
 \begin{document}
 \begin{abstract}
-With the development of artificial intelligence technology and independent technology, the collaborative perception, planning, and coordination of unmanned swarm in a dynamic confrontation environment are dramatically developing. In this paper, we propose three novel confrontation models discussed and employed in three different contexts. \\
+With the growth of artificial intelligence technology and independent technology, the collaborative perception, planning, and coordination of unmanned swarm in a dynamic confrontation environment are dramatically developing. In this paper, we propose three novel confrontation models discussed and employed in three different contexts. \\
 First, we propose a strategy model for verifying Question I. After simplifying the original problem and establishing assumptions, we employ a hypothetical chasing strategy for the Red USVs, meanwhile, consider the Blue USV's strategy from cost time and minimum distance maximize optimization aspects simultaneously. We prove that no matter what kind of pursuit strategy the Red USVs adopts, the Blue UAV can always realize the successful penetration. \\
 Secondly, We analyze the existence of $M_{min}$ and $M_{max}$ for Question II, then based on the discussion of M, assigning corresponding time-optimal interception and penetration strategies to red and blue parties. First, we remodel the Red USVs using a constrained particle swarm algorithm, which uses heuristic algorithms to optimize strategies for the Red USV clusters. Next, we use the convolutional neural network (CNN) to predict the Red USV clusters flight trajectory, and propose corresponding countermeasures for the Blue USV under different conditions. \\
-And then, in the Question III scenario, we continue to apply the strategy model based on the Question II hypothesis, and on this basis, we further analyze the advantages of the Blue USV bringing by maneuvering seduction strategy, extract several key points on its moving path for the Red USV Carrier to determine how to release USV clusters. \\
-Finally, we use Matlab and Python/Taichi codes to verify our models as well as visualize the confrontation result both in real-time and in visualizing the confrontation result both in real-time and the chart. \\
+And then, in the Question III scenario, we continue to apply the strategy model based on the Question II hypothesis, and on this basis, we further analyze the advantages of the Blue USV bringing by maneuvering seduction strategy, and extract several key points on its moving path for the Red USV Carrier to determine how to release USV clusters. \\
+Finally, we simulate the whole confrontation process through Matlab and Python/Taichi codes to verify our models 1111111111. \\
 We deduce our conclusions in the end, summarize our strengths and weaknesses.
 \begin{keywords}
 USV cluster, cluster collaborative control, multi-agent system, swarm intelligence
@@ -37,8 +37,8 @@ USV cluster, cluster collaborative control, multi-agent system, swarm intelligen
 
 \section{Introduction}
 \subsection{Background}
-To Reduce dependence on land-based,sea-based, and air-based platforms, more and more countries develop drones as a key force in the third offset strategy. With the rapid development of drone technology and artificial intelligence, drone cluster collaboration technology based on swarm intelligence has gradually become a hot application field for development. The shortcomings of a single USV with limited load capacity, lightweight load, and insufficient low-power equipment are difficult to support its independent completion of tasks, making USV cluster collaboration a hot spot for the development of future intelligent warfare. The combination of the advantages of small load, low cost, and a large number of USVs and the advantages of rapid communication and information sharing within the USV cluster can significantly improve the situational awareness and task execution capabilities of the combat team. It has pRedominant survival abilities, flexibility, and environmental adaptability than humans. In the military field, drone cluster technology plays an irreplaceable role in intercepting missile, electromagnetic interference, intelligence reconnaissance, and so on.\\
-Judging from the military conflicts in recent years, air defense is facing a more new and complex threat. Among them, the usage of artificial intelligence, integrated, group control, data fusion, collaborative interaction, and other technologies have enabled manifold small-scale, low-cost drone swarms (cluster) combat becomes possible, provides options for more strategic battles and tactics for confrontation at all levels, and brings great Subversion and challenges to traditional offensive and air defense styles.\\
+To Reduce dependence on land-based,sea-based, and air-based platforms, more and more countries develop drones as a key force in the third offset strategy. With the rapid development of drone technology and artificial intelligence, drone cluster collaboration technology based on swarm intelligence has gradually become a hot application field for development. However, the shortcomings of a single USV with limited load capacity, lightweight load, and insufficient low-power equipment are difficult to support its independent completion of tasks, making USV cluster collaboration the authentic focus for the development of future intelligent warfare. The combination of the advantages of small load, low cost, and a large number of USVs and the advantages of rapid communication and information sharing within the USV cluster can significantly improve the situational consciousness and task execution capabilities of the combat team. It has predominant survival abilities, flexibility, and environmental adaptability than humans. In the military field, drone cluster technology plays an irreplaceable role in intercepting missile, electromagnetic interference, intelligence reconnaissance, and so on.\\
+Judging from the military conflicts in recent years, air defense is facing more new and complex threat. Among them, the usage of artificial intelligence, integrated, group control, data fusion, collaborative interaction, and other technologies have enabled manifold small-scale, low-cost drone swarms (cluster) combat becomes possible, provides options for more strategic battles and tactics for confrontation at all levels, and brings great subversion and challenges to traditional offensive and air defense styles.\\
 Based on the fact that the future combat subject changes from a single USV to USV cluster coordination, the original single human-machine combat systems, combat methods, and individual intelligence algorithms will be no longer applicable, we present a swarm intelligence-based USV cluster collaborative confrontation as a possible solution.
 
 
@@ -80,10 +80,10 @@ $R_{C}$      				   & Minimum turning radius of Red USV's Carriers            & 
 \subsection{Model I}
 
 \subsubsection{Overview}
-In the first model, our target is to identify any location inside in the $(L, M)$ rectangle is all available for Blue USV to penetratee within 700s, which is identical to prove that there at least exists an optimization strategy for the Blue USV that could even handle the worst initial position in the given constraints. It's necessary to point out that compares to the other models we will discuss in the later sections, the prerequisite of the first model is more restrictive thus we could do more extra specific assumptions and simplifications. We will use this model to solve the first question in the following steps. First, we restate the question in mathematic formulas. Second, based on the inference, we propose a hypothetical Red USVs' strategy that way stronger than any feasible strategies. Finally, we prove that even in this situation, the corresponding strategy for Blue USV we made is still advantageous to help Blue USV to avoid interception in any case, to achieve this, in this model we transform the original problem into two different optimization problems, prove the validity of our conclusion separately.
+In the first model, our target is to identify if any location inside in the $(L, M)$ rectangle is available for Blue USV to penetratee within 700s, which is the key to prove that there at least exists an optimization strategy for the Blue USV that could even handle the worst initial position in the given constraints. It's necessary to point out that compares to the other models we will discuss in the later sections, the prerequisite of the first model is more restrictive thus we could do more extra specific assumptions and simplifications. We will use this model to solve the first question in the following steps. First, we restate the question in mathematic formulas. Second, based on these inferences, we propose a hypothetical Red USVs' strategy whose robustness better than any other feasible strategies. Finally, we prove that even in this situation, the corresponding strategy for Blue USV we made is still advantageous to help Blue USV to avoid interception in any case, to achieve this, in this model we transform the original problem into two different optimization problems, prove the validity of our conclusion separately.
 
 \subsubsection{Mathematical analysis}
-The problem domain is two dimensions, thus we use the Cartesian coordinate system to describe the positions of USVs. In the initial state, $\mathbf{P}(0)_{C_1}=(L, 2)$ is the location of one of the Red USV carrier, $\mathbf{P}_{C_2}(0)=(L, 5)$ is the location of another. The location of Blue USVs is $\mathbf{P}(0)_{E}=(X_E, Y_E)$, where we will discuss the selection of $X_E$ and $Y_E$ later. Symbol $\mathbf{P}(t)$ means position vector at time $t$. \par
+The problem domain are two dimensions, thus we use the Cartesian coordinate system to describe the positions of USVs. In the initial state, $\mathbf{P}(0)_{C_1}=(L, 2)$ is the location of one of the Red USV carrier, $\mathbf{P}_{C_2}(0)=(L, 5)$ is the location of another. The location of Blue USVs is $\mathbf{P}(0)_{E}=(X_E, Y_E)$, where we will discuss the selection of $X_E$ and $Y_E$ later. Symbol $\mathbf{P}(t)$ means position vector at time $t$. \par
 To achieve the integration of position, we use the finite difference method to discretize time and integral $\mathbf{P}(t)$ using a semi-implicit integrator, i.e.
 
 \begin{equation}
@@ -344,20 +344,9 @@ Let $y_E$ be the value of the end point y-coordinate, $g_1$ be the value of $\ma
 \end{array} \right.
 \end{equation}
 
-Instead of setting $\phi$ as our optimization target, our target is the cost time thus we only need $\phi = f(y_E)$ greater than or equal to some certain number $\phi_0$, which gives $y_E$ a boundary restriction. Under this constraint, our goal is to minimize $\sqrt{L^2+(y_E - \frac{M}{2})^2}$, which is equally to minimize $\vert \vert y_E - \frac{M}{2} \vert \vert$. It's certainly a nonlinear-programming problem, but given the $\phi_0$, we can actually calculate solution analytically. \par
+Instead of setting $\phi$ as our optimization target, our target is the cost time thus we only need $\phi = f(y_E)$ greater than or equal to some certain number $\phi_0$, which gives $y_E$ a boundary restruction. Under this constraint, our goal is to minimize $\sqrt{L^2+(y_E - \frac{M}{2})^2}$, which is equally to minimize $\vert \vert y_E - \frac{M}{2} \vert \vert$. It's certainly a nonlinear-programming problem, but given the $\phi_0$, we can actually calculate solution analytically. \par
 
-Now let's discuss when we could change our destination during the movement. If the penetration is successful, there must exist a final stage of the confrontation that both the Blue USV and the Red clusters move in the same straight route or at least approximately the same direction, where:
-
-\begin{equation}
-\mathbf{d_{Red}}(t_m) \cdot \mathbf{d_{Blue}}(t_m) \geq 1 - \epsilon
-\end{equation}
-
-where $\epsilon$ is a control variable to control the degree of approximation. If the above equation could meet when $t_n \geq t_m$, as long as it can be satisfied at the same time that $\vert \vert \mathbf{P_{Red}} - \mathbf{P_{Red}} \vert \vert > D_{min}$ for all the Red USV. the Blue USV could change its direction towards horizontal under the minimum turning radius constraint.
-
-\paragraph{strategy III}
-
-Considering when the $M$ is small or the $\mathbf{G_1}$, $\mathbf{G_2}$ are asymmetrical to the penetration path, i.e. $\phi = f(y_E) \geq \phi_0$ is unsolvable. The strategy II is not available at the beginning. At this time, we use deception to attract the Red USV to one side and maneuver to another area at a high speed to successfully penetrate the defense. Rather than set destination on the boundary $\mathbf{CD}$, we first determine a direction satisfied $\phi \geq \phi_0$, and move straight towards this direction until Equation. (30) is met. Then we judge whether strategy II is available or not. If is available, we apply strategy II. If not, we continue to repeat the previous maneuver strategy, until that the conditions of strategy II are met.
-
+Now let's discuss when we could change our destination during the movement. 
 \section{Test Model}
 \subsection{Model I}
 \begin{figure}[h]
@@ -380,7 +369,7 @@ In these three questions, the Red USVs and the Blue USV have many methods of act
 • Applies widely \par
 	Our decision model about Red USVs and Blue USV applies to various situations under this type of model. Can adapt to various situations by modifying basic parameters and equations. \\ \\
 • The result is globally optimal \par
-	In any case, the solution under the global conditions can be found. \\ \\
+	In any case, the solution under global conditions can be found. \\ \\
 • High algorithm accuracy \par
 	The algorithms and optimizations we used in the model make the conclusions more accurate under these conditions.\\ \\
 • Reliable computing platform \par
